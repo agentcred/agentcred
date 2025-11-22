@@ -94,7 +94,7 @@ jobs:
         run: |
           docker run --platform linux/amd64 \
             --volume $(pwd):/src \
-            --volume ~/.config/oasis:/root/.config/oasis \
+            --volume $HOME/.config/oasis:/root/.config/oasis \
             -e OASIS_WALLET_PASSPHRASE \
             ghcr.io/oasisprotocol/rofl-dev:main \
             oasis rofl deploy --account agentcred_deployer
