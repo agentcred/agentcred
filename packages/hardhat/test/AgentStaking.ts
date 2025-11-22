@@ -8,18 +8,19 @@ describe("AgentStaking", function () {
     let owner: any;
     let auditor: any;
     let user: any;
+    let treasury: any;
 
     const AUDITOR_ROLE = ethers.keccak256(ethers.toUtf8Bytes("AUDITOR_ROLE"));
 
     before(async () => {
-        [owner, auditor, user] = await ethers.getSigners();
+        [owner, auditor, user, treasury] = await ethers.getSigners();
 
         const mockTokenFactory = await ethers.getContractFactory("MockToken");
         mockToken = (await mockTokenFactory.deploy()) as MockToken;
         await mockToken.waitForDeployment();
 
         const agentStakingFactory = await ethers.getContractFactory("AgentStaking");
-        agentStaking = (await agentStakingFactory.deploy(await mockToken.getAddress())) as AgentStaking;
+        agentStaking = (await agentStakingFactory.deploy(await mockToken.getAddress(), treasury.address)) as AgentStaking;
         await agentStaking.waitForDeployment();
 
         await agentStaking.grantRole(AUDITOR_ROLE, auditor.address);
@@ -52,16 +53,22 @@ describe("AgentStaking", function () {
         expect(await agentStaking.stakes(agentId)).to.equal(ethers.parseEther("50"));
     });
 
-    it("Should allow auditor to slash stake", async function () {
+    it("Should allow auditor to slash stake and transfer to treasury", async function () {
         const agentId = 1;
         const amount = ethers.parseEther("10");
         const reason = "Bad content";
+
+        const treasuryBalanceBefore = await mockToken.balanceOf(treasury.address);
 
         await expect(agentStaking.connect(auditor).slash(agentId, amount, reason))
             .to.emit(agentStaking, "Slashed")
             .withArgs(agentId, amount, reason);
 
         expect(await agentStaking.stakes(agentId)).to.equal(ethers.parseEther("40"));
+
+        // Verify treasury received the slashed funds
+        const treasuryBalanceAfter = await mockToken.balanceOf(treasury.address);
+        expect(treasuryBalanceAfter - treasuryBalanceBefore).to.equal(amount);
     });
 
     it("Should not allow non-auditor to slash stake", async function () {
@@ -82,6 +89,22 @@ describe("AgentStaking", function () {
             .withArgs(identityRegistry);
 
         expect(await agentStaking.identityRegistry()).to.equal(identityRegistry);
+    });
+
+    it("Should allow admin to set treasury", async function () {
+        const newTreasury = "0x0000000000000000000000000000000000000002";
+
+        await expect(agentStaking.connect(owner).setTreasury(newTreasury))
+            .to.emit(agentStaking, "TreasuryUpdated")
+            .withArgs(newTreasury);
+
+        expect(await agentStaking.treasury()).to.equal(newTreasury);
+    });
+
+    it("Should reject setting treasury to zero address", async function () {
+        await expect(
+            agentStaking.connect(owner).setTreasury(ethers.ZeroAddress)
+        ).to.be.revertedWith("Invalid treasury address");
     });
 
     // Edge cases

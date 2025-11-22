@@ -21,14 +21,20 @@ contract AgentStaking is AccessControl {
 
     // ERC-8004 Identity Registry Address
     address public identityRegistry;
+    
+    // Treasury address for slashed funds
+    address public treasury;
 
     event Staked(uint256 indexed agentId, address indexed staker, uint256 amount);
     event Unstaked(uint256 indexed agentId, address indexed staker, uint256 amount);
     event Slashed(uint256 indexed agentId, uint256 amount, string reason);
     event IdentityRegistryUpdated(address indexed newRegistry);
+    event TreasuryUpdated(address indexed newTreasury);
 
-    constructor(address _stakingToken) {
+    constructor(address _stakingToken, address _treasury) {
+        require(_treasury != address(0), "Invalid treasury address");
         stakingToken = IERC20(_stakingToken);
+        treasury = _treasury;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -78,6 +84,15 @@ contract AgentStaking is AccessControl {
     }
 
     /**
+     * @notice Gets the current stake for an agent.
+     * @param _agentId The ID of the agent.
+     * @return The current staked amount.
+     */
+    function getStake(uint256 _agentId) external view returns (uint256) {
+        return stakes[_agentId];
+    }
+
+    /**
      * @notice Slashes an agent's stake.
      * @dev Only callable by accounts with AUDITOR_ROLE.
      * @param _agentId The ID of the agent to slash.
@@ -88,8 +103,9 @@ contract AgentStaking is AccessControl {
         require(stakes[_agentId] >= _amount, "Insufficient stake to slash");
 
         stakes[_agentId] -= _amount;
-        // In a real scenario, slashed tokens might be burned or sent to a treasury.
-        // For now, we'll just keep them in the contract (effectively confiscated).
+        
+        // Transfer slashed funds to treasury
+        require(stakingToken.transfer(treasury, _amount), "Transfer to treasury failed");
         
         emit Slashed(_agentId, _amount, _reason);
     }
@@ -102,5 +118,16 @@ contract AgentStaking is AccessControl {
     function setIdentityRegistry(address _identityRegistry) external onlyRole(DEFAULT_ADMIN_ROLE) {
         identityRegistry = _identityRegistry;
         emit IdentityRegistryUpdated(_identityRegistry);
+    }
+
+    /**
+     * @notice Sets the treasury address for slashed funds.
+     * @dev Only callable by the admin.
+     * @param _treasury The new treasury address.
+     */
+    function setTreasury(address _treasury) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_treasury != address(0), "Invalid treasury address");
+        treasury = _treasury;
+        emit TreasuryUpdated(_treasury);
     }
 }

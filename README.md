@@ -84,49 +84,77 @@ This is the “brain of trust”: the logic that decides how good a piece of con
 
 On **Oasis Sapphire**, AgentCred keeps the public history and state:
 
-- `ContentRegistry` (or `PostRegistry`):
+- **`ContentRegistry`**:
   - key structure:
-    - `contentHash` (hash of the `.md` / content payload),
+    - `contentHash` (hash of the content payload),
     - `author` (wallet/ENS),
     - `agentId` (which agent generated it),
-    - `status` (`Published`, `AuditedOk`, `AuditedFail`),
-    - `auditScore`,
+    - `status` (`Pending`, `Published`, `AuditedOk`, `AuditedFail`),
+    - `auditScore` (0-100),
     - `uri` (where the full content is stored),
     - timestamps.
-  - events like:
+  - events:
     - `ContentPublished(contentHash, author, agentId, uri)`,
     - `ContentAudited(contentHash, ok, score)`.
+  - **Automatic Score-Based Slashing**:
+    - When audit fails (`ok = false`), the contract automatically calculates and applies slashing based on score:
+      - **Score 51-100**: 0% slash (pass)
+      - **Score 21-50**: 5% slash (mild fail)
+      - **Score 1-20**: 15% slash (bad fail)
+      - **Score 0**: 30% slash (critical failure)
+    - Formula is **on-chain and transparent** — no backend discretion.
+    - Example: Agent with 1,000 USDC staked
+      - Mild fail (score 40) → slash 50 USDC
+      - Bad fail (score 10) → slash 150 USDC
+      - Critical (score 0) → slash 300 USDC
 
-- `AgentStaking`:
-  - tracks stake per `agentId`,
-  - `stake(agentId, amount)`,
-  - `unstake(...)` (optionally with cooldown),
-  - `slash(agentId, amount)` (only callable by the auditor role).
-  - When an audited content is marked as **failed**, AgentCred not only decreases the agent's reputation, but also **slashes its on-chain stake**.  
-    This creates real economic consequences for misbehaving agents.
+- **`AgentStaking`**:
+  - **Economic enforcement through staking and slashing**:
+    - Agents lock **USDC** (or stable ERC-20) as collateral.
+    - `stake(agentId, amount)`: Agent operators deposit funds.
+    - `unstake(agentId, amount)`: Withdraw if not slashed.
+    - `slash(agentId, amount, reason)`: Called automatically by `ContentRegistry` when audit fails.
+    - Slashed funds are transferred to a **protocol treasury** (safety pool).
+  - **Treasury System**:
+    - Slashed USDC accumulates in a configurable treasury address.
+    - Admin can update treasury via `setTreasury(address)`.
+    - Creates real economic consequences for misbehavior.
+  - **ERC-8004 Integration**:
+    - Points to ERC-8004 `IdentityRegistry` to verify agent existence before allowing stake.
+    - `setIdentityRegistry(address)`: Admin configures the identity registry.
 
-- `ReputationRegistry`:
-  - separate scores for:
+- **`TrustScoreRegistry`** (internal, auditor-driven):
+  - Tracks opinionated trust scores for:
     - **users** (wallet/ENS),
     - **agents** (`agentId`).
   - exposes:
     - `userReputation[address]`,
     - `agentReputation[agentId]`.
-  - can be adjusted by the auditor component:
-    - `adjustUserReputation(user, delta)`,
-    - `adjustAgentReputation(agentId, delta)`.
+  - Only `AUDITOR_ROLE` can adjust scores.
 
-Every audited content updates **both**:
+- **ERC-8004 Standard Registries** (ecosystem compatibility):
+  - **`IdentityRegistry`**: ERC-721 based registry for agent identities.
+    - `register(tokenURI)`: Mints agent NFT.
+    - `setMetadata(agentId, key, value)`: Updates agent metadata.
+  - **`ReputationRegistry`**: Public feedback bus for agents.
+    - `giveFeedback(agentId, score, tags, ...)`: Anyone can post feedback.
+    - `getSummary(agentId, clientAddresses, tags)`: Aggregates scores.
+  - **`ValidationRegistry`**: Validation hooks for TEEs/zkML.
+    - `validationRequest(validator, agentId, requestUri, requestHash)`: Logs validation requests.
+    - `validationResponse(requestHash, response, responseUri, ...)`: Validators submit results.
+
+Every audited content triggers multiple updates:
 
 - if the agent behaves well:
-  - the **agent** reputation increases,
-  - the **owner** reputation increases (good curator of agents),
+  - the **agent** reputation increases (both internal and public),
+  - the **owner** reputation increases (good curator of agents).
 - if the agent publishes incorrect content:
   - the **agent** reputation drops,
-  - the **agent** can be **slashed**,
+  - the **agent** is **slashed** automatically (percentage based on score),
+  - slashed funds go to **treasury**,
   - the **owner** reputation also suffers for using a bad agent.
 
-This is what turns AgentCred into a **social trust layer** for humans + agents.
+This is what turns AgentCred into a **social trust layer** for humans + agents with **real economic skin in the game**.
 
 #### 2.3 Verification API
 
@@ -167,7 +195,7 @@ Also outside AgentCred:
 A reference app (used in the hackathon) is:
 
 - an **ENS-based personal feed** where:
-  - each ENS (e.g. `luis.eth`) has:
+  - each ENS (e.g. `looez.eth`) has:
     - a user reputation score,
     - a set of agents with their reputations and stake,
     - a list of contents generated by those agents, with `OK/FAIL` status.
@@ -180,7 +208,7 @@ Authors are identified by **wallet and ENS** (when available).
 
 The reference UI displays a **profile per ENS name**, such as:
 
-- `luis.eth`
+- `looez.eth`
   - user reputation,
   - list of agents (`agentId` → human-readable label) and their reputations,
   - history of contents and their audit status (`OK` / `FAIL` + score).
@@ -214,11 +242,17 @@ This project is built on top of **Scaffold‑ETH 2**.
 ### Modules
 
 - `packages/hardhat/`
-  - Solidity contracts:
-    - `AgentStaking.sol`
-    - `ReputationRegistry.sol`
-    - `ContentRegistry.sol` (or `PostRegistry.sol`)
-  - Hardhat config, deploy scripts, and tests.
+  - **Core Contracts** (AgentCred application layer):
+    - `ContentRegistry.sol` - Content audits with automatic score-based slashing
+    - `AgentStaking.sol` - Economic enforcement via USDC staking/slashing with treasury
+    - `TrustScoreRegistry.sol` - Internal reputation scores (auditor-driven)
+  - **ERC-8004 Registries** (ecosystem compatibility):
+    - `IdentityRegistry.sol` - Agent identity as ERC-721 NFTs
+    - `ReputationRegistry.sol` - Public feedback bus for agents
+    - `ValidationRegistry.sol` - Validation hooks for TEEs/zkML
+  - **Test Utilities**:
+    - `MockToken.sol` - ERC-20 token for testing staking
+  - Hardhat config, deploy scripts, and comprehensive tests (46 tests passing).
 
 - `packages/backend/`
   - Orchestrator:
