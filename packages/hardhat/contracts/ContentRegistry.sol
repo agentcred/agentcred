@@ -49,7 +49,7 @@ contract ContentRegistry is AccessControl {
     // Mapping from contentHash to Content details
     mapping(string => Content) public contents;
 
-    event ContentPublished(string indexed contentHash, address indexed author, uint256 indexed agentId, string uri);
+    event ContentPublished(string contentHash, address indexed author, uint256 indexed agentId, string uri);
     event ContentAudited(string indexed contentHash, bool ok, uint256 score);
     event AgentStakingUpdated(address indexed newAgentStaking);
 

@@ -46,7 +46,7 @@ export const useUserContents = (address: string | undefined) => {
                         type: "event",
                         name: "ContentPublished",
                         inputs: [
-                            { indexed: true, name: "contentHash", type: "string" },
+                            { indexed: false, name: "contentHash", type: "string" },
                             { indexed: true, name: "author", type: "address" },
                             { indexed: true, name: "agentId", type: "uint256" },
                             { indexed: false, name: "uri", type: "string" },
@@ -62,8 +62,12 @@ export const useUserContents = (address: string | undefined) => {
                 // Fetch content details for each hash
                 const contentsList: ContentInfo[] = [];
 
+                console.log("Found", publishedEvents.length, "events");
+
                 for (const event of publishedEvents) {
+                    console.log("Event args:", event.args);
                     const contentHash = event.args.contentHash as string;
+                    console.log("Querying content with hash:", contentHash);
 
                     const contentData = await publicClient.readContract({
                         address: contentRegistry.address as `0x${string}`,
