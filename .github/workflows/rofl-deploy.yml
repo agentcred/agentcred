@@ -85,7 +85,10 @@ jobs:
           
           # Setup wallet
           mkdir -p ~/.config/oasis
-          echo "${{ secrets.OASIS_WALLET }}" | base64 -d > ~/.config/oasis/agentcred_deployer.wallet
+          
+          # Import wallet using mnemonic (non-interactive)
+          # We pipe the passphrase twice (confirm) to encrypt the local wallet
+          printf "${{ secrets.OASIS_WALLET_PASSPHRASE }}\n${{ secrets.OASIS_WALLET_PASSPHRASE }}" | oasis wallet import agentcred_deployer --secret "${{ secrets.OASIS_WALLET }}" --algorithm ed25519-adr8 --yes
       
       - name: Deploy to testnet
         working-directory: packages/rofl-poc
