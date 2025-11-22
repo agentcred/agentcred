@@ -1,0 +1,15 @@
+{
+    "name": "agentcred-verifier",
+    "version": "0.1.0",
+    "description": "TEE Verifier for AgentCred",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "ethers": "^6.11.1",
+        "@oasisprotocol/sapphire-paratime": "^1.3.2",
+        "@openai/agents": "latest",
+        "zod": "^3.23.8"
+    }
+}
