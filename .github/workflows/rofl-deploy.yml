@@ -79,6 +79,11 @@ jobs:
       - name: Setup Oasis wallet
         working-directory: packages/rofl-poc
         run: |
+          # Install Oasis CLI
+          curl -fsSL https://github.com/oasisprotocol/cli/releases/download/v0.17.0/oasis_cli_0.17.0_linux_amd64.tar.gz | tar -xz
+          sudo mv oasis /usr/local/bin/
+          
+          # Setup wallet
           mkdir -p ~/.config/oasis
           echo "${{ secrets.OASIS_WALLET }}" | base64 -d > ~/.config/oasis/agentcred_deployer.wallet
       
