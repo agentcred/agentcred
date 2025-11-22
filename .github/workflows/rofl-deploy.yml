@@ -87,17 +87,18 @@ jobs:
           mkdir -p ~/.config/oasis
           
           # Import wallet using mnemonic (non-interactive)
-          # We pipe the passphrase twice (confirm) to encrypt the local wallet
-          printf "${{ secrets.OASIS_WALLET_PASSPHRASE }}\n${{ secrets.OASIS_WALLET_PASSPHRASE }}" | oasis wallet import agentcred_deployer --secret "${{ secrets.OASIS_WALLET }}" --algorithm ed25519-adr8 --yes
+          # We sanitize the secret to remove newlines/spaces
+          CLEAN_SECRET=$(echo "${{ secrets.OASIS_WALLET }}" | tr -d '\n' | xargs)
+          printf "${{ secrets.OASIS_WALLET_PASSPHRASE }}\n${{ secrets.OASIS_WALLET_PASSPHRASE }}\n" | oasis wallet import agentcred_deployer --secret "$CLEAN_SECRET" --algorithm ed25519-adr8 --yes
       
       - name: Deploy to testnet
         working-directory: packages/rofl-poc
         env:
           OASIS_WALLET_PASSPHRASE: ${{ secrets.OASIS_WALLET_PASSPHRASE }}
         run: |
-          docker run --platform linux/amd64 \
+          printf "${{ secrets.OASIS_WALLET_PASSPHRASE }}\n" | docker run --platform linux/amd64 \
             --volume $(pwd):/src \
             --volume $HOME/.config/oasis:/root/.config/oasis \
-            -e OASIS_WALLET_PASSPHRASE \
+            -i \
             ghcr.io/oasisprotocol/rofl-dev:main \
-            oasis rofl deploy --account agentcred_deployer
+            oasis rofl deploy --account agentcred_deployer --yes
