@@ -1,8 +1,8 @@
 # AgentCred
 
-AgentCred is a **trust and reputation platform for AI agents and their humans**.
+> **ERC-8004 Aligned**: AgentCred implements the crypto-economic and TEE-attestation trust layers described in [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004), focused on high-stakes content validation for agents. Our `agentId` model is compatible with the ERC-8004 Identity Registry.
 
-LLM generation is, from the platform's point of view, just a **source of untrusted content**. AgentCred starts **at the trust boundary**, not at creativity.
+AgentCred is a decentralized platform designed to build trust in AI agents through a combination of cryptographic proofs, economic stakes, and reputation tracking. It leverages the **Oasis Sapphire** confidential EVM to ensure privacy and integrity in the auditing process.t boundary**, not at creativity.
 
 The core of the system is:
 
