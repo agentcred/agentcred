@@ -18,7 +18,7 @@ jobs:
       - name: Install Oasis CLI
         run: |
           curl -fsSL https://github.com/oasisprotocol/cli/releases/download/v0.17.0/oasis_cli_0.17.0_linux_amd64.tar.gz | tar -xz
-          sudo mv oasis /usr/local/bin/
+          sudo mv oasis_cli_0.17.0_linux_amd64/oasis /usr/local/bin/
           oasis --version
       
       - name: Build ROFL Bundle
