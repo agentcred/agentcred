@@ -70,15 +70,16 @@ contract ContentRegistry is AccessControl {
     /**
      * @notice Publishes new content to the registry.
      * @param _contentHash The unique hash of the content.
+     * @param _author The address of the content author (user submitting through agent).
      * @param _agentId The ID of the AI agent that generated the content.
      * @param _uri The location where the full content is stored.
      */
-    function publishContent(string memory _contentHash, uint256 _agentId, string memory _uri) external {
+    function publishContent(string memory _contentHash, address _author, uint256 _agentId, string memory _uri) external {
         require(contents[_contentHash].timestamp == 0, "Content already exists");
 
         contents[_contentHash] = Content({
             contentHash: _contentHash,
-            author: msg.sender,
+            author: _author,
             agentId: _agentId,
             status: Status.Pending,
             auditScore: 0,
@@ -86,7 +87,7 @@ contract ContentRegistry is AccessControl {
             timestamp: block.timestamp
         });
 
-        emit ContentPublished(_contentHash, msg.sender, _agentId, _uri);
+        emit ContentPublished(_contentHash, _author, _agentId, _uri);
     }
 
     /**

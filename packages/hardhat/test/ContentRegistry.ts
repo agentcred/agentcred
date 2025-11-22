@@ -24,7 +24,7 @@ describe("ContentRegistry", function () {
         const agentId = 1;
         const uri = "ipfs://content1";
 
-        await expect(contentRegistry.connect(user).publishContent(contentHash, agentId, uri))
+        await expect(contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, uri))
             .to.emit(contentRegistry, "ContentPublished")
             .withArgs(contentHash, user.address, agentId, uri);
 
@@ -42,7 +42,7 @@ describe("ContentRegistry", function () {
         const uri = "ipfs://content1";
 
         await expect(
-            contentRegistry.connect(user).publishContent(contentHash, agentId, uri)
+            contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, uri)
         ).to.be.revertedWith("Content already exists");
     });
 
@@ -83,7 +83,7 @@ describe("ContentRegistry", function () {
 
     it("Should allow audit with score = 0", async function () {
         const contentHash = "hash2";
-        await contentRegistry.connect(user).publishContent(contentHash, 1, "ipfs://test");
+        await contentRegistry.connect(user).publishContent(contentHash, user.address, 1, "ipfs://test");
 
         await expect(
             contentRegistry.connect(auditor).updateAuditResult(contentHash, false, 0)
@@ -92,7 +92,7 @@ describe("ContentRegistry", function () {
 
     it("Should allow audit with score = 100", async function () {
         const contentHash = "hash3";
-        await contentRegistry.connect(user).publishContent(contentHash, 1, "ipfs://test");
+        await contentRegistry.connect(user).publishContent(contentHash, user.address, 1, "ipfs://test");
 
         await expect(
             contentRegistry.connect(auditor).updateAuditResult(contentHash, true, 100)
@@ -101,7 +101,7 @@ describe("ContentRegistry", function () {
 
     it("Should update status to AuditedFail when ok is false", async function () {
         const contentHash = "hash4";
-        await contentRegistry.connect(user).publishContent(contentHash, 1, "ipfs://test");
+        await contentRegistry.connect(user).publishContent(contentHash, user.address, 1, "ipfs://test");
 
         await contentRegistry.connect(auditor).updateAuditResult(contentHash, false, 25);
 
@@ -143,7 +143,7 @@ describe("ContentRegistry", function () {
 
         it("Should not slash with passing score (51-100)", async function () {
             const contentHash = "slashTest1";
-            await contentRegistry.connect(user).publishContent(contentHash, agentId, "ipfs://test");
+            await contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, "ipfs://test");
 
             const stakeBefore = await agentStaking.stakes(agentId);
             await contentRegistry.connect(auditor).updateAuditResult(contentHash, false, 51);
@@ -154,7 +154,7 @@ describe("ContentRegistry", function () {
 
         it("Should slash 5% with mild fail (21-50)", async function () {
             const contentHash = "slashTest2";
-            await contentRegistry.connect(user).publishContent(contentHash, agentId, "ipfs://test");
+            await contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, "ipfs://test");
 
             const stakeBefore = await agentStaking.stakes(agentId);
             await contentRegistry.connect(auditor).updateAuditResult(contentHash, false, 30);
@@ -166,7 +166,7 @@ describe("ContentRegistry", function () {
 
         it("Should slash 15% with bad fail (1-20)", async function () {
             const contentHash = "slashTest3";
-            await contentRegistry.connect(user).publishContent(contentHash, agentId, "ipfs://test");
+            await contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, "ipfs://test");
 
             const stakeBefore = await agentStaking.stakes(agentId);
             await contentRegistry.connect(auditor).updateAuditResult(contentHash, false, 10);
@@ -178,7 +178,7 @@ describe("ContentRegistry", function () {
 
         it("Should slash 30% with critical failure (0)", async function () {
             const contentHash = "slashTest4";
-            await contentRegistry.connect(user).publishContent(contentHash, agentId, "ipfs://test");
+            await contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, "ipfs://test");
 
             const stakeBefore = await agentStaking.stakes(agentId);
             await contentRegistry.connect(auditor).updateAuditResult(contentHash, false, 0);
@@ -190,7 +190,7 @@ describe("ContentRegistry", function () {
 
         it("Should not slash when audit passes (ok=true)", async function () {
             const contentHash = "slashTest5";
-            await contentRegistry.connect(user).publishContent(contentHash, agentId, "ipfs://test");
+            await contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, "ipfs://test");
 
             const stakeBefore = await agentStaking.stakes(agentId);
             await contentRegistry.connect(auditor).updateAuditResult(contentHash, true, 90);
