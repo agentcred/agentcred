@@ -15,6 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools cryptsetup-bin qemu-utils
+      
       - name: Install Oasis CLI
         run: |
           curl -fsSL https://github.com/oasisprotocol/cli/releases/download/v0.17.0/oasis_cli_0.17.0_linux_amd64.tar.gz | tar -xz
