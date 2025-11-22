@@ -97,6 +97,12 @@ const deployAgentCred: DeployFunction = async function (hre: HardhatRuntimeEnvir
   await grantRoleTx.wait();
   console.log("✅ Granted AUDITOR_ROLE to deployer");
 
+  // Grant AUDITOR_ROLE to deployer on TrustScoreRegistry (for API endpoint)
+  const AUDITOR_ROLE_TRUST = await trustScoreRegistryContract.AUDITOR_ROLE();
+  const grantTrustRoleTx = await trustScoreRegistryContract.grantRole(AUDITOR_ROLE_TRUST, deployer);
+  await grantTrustRoleTx.wait();
+  console.log("✅ Granted AUDITOR_ROLE to deployer on TrustScoreRegistry");
+
   // Grant AUDITOR_ROLE to ContentRegistry in AgentStaking (so it can slash)
   const AUDITOR_ROLE_STAKING = await agentStakingContract.AUDITOR_ROLE();
   const grantAuditorTx = await agentStakingContract.grantRole(AUDITOR_ROLE_STAKING, contentRegistry.address);
