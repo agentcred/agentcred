@@ -3,11 +3,11 @@ version: 0.1.0
 tee: tdx
 kind: container
 resources:
-  memory: 1024
+  memory: 2048
   cpus: 1
   storage:
     kind: disk-persistent
-    size: 1024
+    size: 10000
 artifacts:
   firmware: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.6.2/ovmf.tdx.fd#db47100a7d6a0c1f6983be224137c3f8d7cb09b63bb1c7a5ee7829d8e994a42f
   kernel: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.6.2/stage1.bin#e5d4d654ca1fa2c388bf64b23fc6e67815893fc7cb8b7cfee253d87963f54973
@@ -15,18 +15,25 @@ artifacts:
   container:
     runtime: https://github.com/oasisprotocol/oasis-sdk/releases/download/rofl-containers%2Fv0.8.4/rofl-containers#2cd0468ec2ea5f4264f47f728c5c3b0fcce93f5a537e568f8cbab8a53b526ae7
     compose: compose.yaml
-
 deployments:
   default:
+    app_id: rofl1qqa65l9tz0trfquej47d09a0w4wa876frszn7u0j
     network: testnet
     paratime: sapphire
+    admin: agentcred_deployer
+    trust_root:
+      height: 29458588
+      hash: 35bd5ab50b7185cae117890abb48542781230313a4973d7cb3085633231cb5da
     policy:
       quotes:
         pcs:
-          - tcb_validity_period: 30
-            min_tcb_evaluation_data_number: 17
-      enclaves: {}
-      endorsed_enclaves: []
-
-
-
+          tcb_validity_period: 30
+          min_tcb_evaluation_data_number: 18
+          tdx: {}
+      enclaves:
+        - id: LbVf61427hmAu4O1rw8Dz0hO0FygQ7+k6hqLuDg1PLYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - id: Y0q4gG0LicYVTTV3hlYwJIdVmuS0ZmrpRH8HqnXve0EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+      endorsements:
+        - any: {}
+      fees: endorsing_node
+      max_expiration: 3

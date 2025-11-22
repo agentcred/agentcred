@@ -46,24 +46,74 @@ To connect it to your local Hardhat chain:
 PRIVATE_KEY="0xac0..." CONTRACT_ADDRESS="0x..." RPC_URL="http://localhost:8545" node index.js
 ```
 
-### ROFL Production Build (Future)
+## Building ROFL Images
 
-When ready to deploy to Oasis ROFL:
+### Using Docker (macOS/Windows/Linux)
 
-1. **Create Account**: Register an on-chain ROFL app identity
-   ```bash
-   oasis rofl create
-   ```
+The easiest way to build ROFL images is using the official Docker image:
 
-2. **Build Bundle**: Compile the `.orc` container
-   ```bash
-   oasis rofl build
-   ```
+```bash
+cd packages/rofl-poc
+docker run --platform linux/amd64 --volume .:/src -it ghcr.io/oasisprotocol/rofl-dev:main oasis rofl build
+```
 
-3. **Deploy**: Push to a ROFL node
-   ```bash
-   oasis rofl deploy
-   ```
+This runs the build inside a Linux container with all required dependencies (`veritysetup`, `dm-verity`, etc.).
+
+### Native Linux Build
+
+If you're on Linux, you can install dependencies and build natively:
+```bash
+# Install dependencies (Ubuntu/Debian)
+sudo apt-get install squashfs-tools fakeroot cryptsetup-bin
+
+# Build
+oasis rofl build --force
+```
+
+## 🚀 Deployment (Sapphire Testnet)
+
+### 1. Prerequisites
+- Oasis CLI installed
+- Wallet funded with TEST tokens (`oasis wallet create`, then faucet)
+
+### 2. Register App Identity
+Create the app on-chain. This generates the App ID and updates `rofl.yaml`.
+```bash
+cd packages/rofl-poc
+oasis rofl create --network testnet --paratime sapphire --account <YOUR_ACCOUNT_NAME>
+```
+
+### 3. Set Secrets
+Encrypt your API keys and store them on-chain.
+```bash
+# Set OpenAI Key
+echo -n "sk-..." | oasis rofl secret set OPENAI_API_KEY -
+
+# Set RPC URL (for ERC-8004 registration)
+echo -n "https://sepolia.infura.io/v3/..." | oasis rofl secret set RPC_URL -
+
+# Set Pinata JWT (for IPFS metadata)
+echo -n "your-pinata-jwt" | oasis rofl secret set PINATA_JWT -
+
+# Update secrets on-chain
+oasis rofl update
+```
+
+### 4. Build & Deploy
+```bash
+# Build the ROFL bundle (using Docker)
+docker run --platform linux/amd64 --volume .:/src -it ghcr.io/oasisprotocol/rofl-dev:main oasis rofl build
+
+# Deploy to the network
+oasis rofl deploy --account <YOUR_ACCOUNT_NAME>
+```
+
+### 5. Verify
+Check the status of your deployed agent:
+```bash
+oasis rofl machine show
+oasis rofl machine logs
+```
 
 > **Note**: The ROFL build process requires proper network configuration and on-chain app registration, which is beyond the scope of this local PoC.
 

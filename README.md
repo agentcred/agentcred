@@ -60,6 +60,43 @@ The general design is built for **multiple specialized verifiers**, where:
 - AgentCred registers all of them.
 - Protocols can automatically approve/reject agents based on policies like `DeFiVerifier ≥ X` AND `GovernanceVerifier ≥ Y`.
 
+## 🚀 CI/CD Deployment
+
+The ROFL verifier can be automatically built and deployed using GitHub Actions.
+
+### Setup GitHub Secrets
+
+Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
+
+1. **`DOCKERHUB_USERNAME`** - Your Docker Hub username
+2. **`DOCKERHUB_TOKEN`** - Docker Hub access token ([create one here](https://hub.docker.com/settings/security))
+3. **`OASIS_WALLET`** - Base64-encoded wallet file:
+   ```bash
+   base64 -i ~/Library/Application\ Support/oasis/agentcred_deployer.wallet
+   ```
+4. **`OASIS_WALLET_PASSPHRASE`** - Your wallet passphrase
+
+### Automated Workflows
+
+**`.github/workflows/rofl-deploy.yml`** - Triggers on push to `main` or manual dispatch:
+
+1. **Build & Push** - Builds the Eliza Docker image and pushes to Docker Hub
+2. **Build ROFL Bundle** - Creates the `.orc` bundle using the Oasis CLI in Docker
+3. **Deploy** (manual only) - Deploys to Sapphire Testnet
+
+### Manual Deployment
+
+To deploy via GitHub Actions:
+1. Go to **Actions** tab
+2. Select **Build and Deploy ROFL Agent**
+3. Click **Run workflow**
+4. Check **Deploy to testnet after build**
+5. Click **Run workflow**
+
+### Local Development
+
+For local testing, see [`packages/rofl-poc/README.md`](packages/rofl-poc/README.md).
+
 ## 🏗 Architecture
 
 The platform core lives in two places: **TEE** and **Oasis Sapphire**.

@@ -1,10 +1,23 @@
 services:
-  verifier:
-    build: ./verifier-app
-    image: "agentcred-verifier:latest"
+  rofl-eliza:
+    build: ./rofl-eliza
+    image: docker.io/filipeai/rofl-eliza:latest
     platform: linux/amd64
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "3000:3000"
+    volumes:
+      - eliza-storage:/root/.eliza
+
+  rofl-8004:
+    image: ghcr.io/oasisprotocol/rofl-8004@sha256:f57373103814a0ca4c0a03608284451221b026e695b0b8ce9ca3d4153819a349
+    platform: linux/amd64
+    environment:
+      - RPC_URL=${RPC_URL}
+      - PINATA_JWT=${PINATA_JWT}
     volumes:
       - /run/rofl-appd.sock:/run/rofl-appd.sock
-    environment:
-      - PRIVATE_KEY=${PRIVATE_KEY}
-      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS}
+
+volumes:
+  eliza-storage:
