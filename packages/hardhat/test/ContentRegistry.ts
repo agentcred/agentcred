@@ -199,4 +199,58 @@ describe("ContentRegistry", function () {
             expect(stakeAfter).to.equal(stakeBefore); // No slash on pass
         });
     });
+    describe("Reputation Updates", function () {
+        let trustScoreRegistry: any;
+        const agentId = 10;
+
+        before(async function () {
+            // Deploy TrustScoreRegistry
+            const trustScoreRegistryFactory = await ethers.getContractFactory("TrustScoreRegistry");
+            trustScoreRegistry = await trustScoreRegistryFactory.deploy();
+            await trustScoreRegistry.waitForDeployment();
+
+            // Set TrustScoreRegistry in ContentRegistry
+            await contentRegistry.connect(owner).setTrustScoreRegistry(await trustScoreRegistry.getAddress());
+
+            // Grant AUDITOR_ROLE to ContentRegistry in TrustScoreRegistry
+            const AUDITOR_ROLE = await trustScoreRegistry.AUDITOR_ROLE();
+            await trustScoreRegistry.grantRole(AUDITOR_ROLE, await contentRegistry.getAddress());
+        });
+
+        it("Should increase reputation on PASS (51-100)", async function () {
+            const contentHash = "repTest1";
+            await contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, "ipfs://test");
+
+            await contentRegistry.connect(auditor).updateAuditResult(contentHash, true, 80);
+
+            expect(await trustScoreRegistry.userReputation(user.address)).to.equal(1);
+            expect(await trustScoreRegistry.agentReputation(agentId)).to.equal(2);
+        });
+
+        it("Should decrease reputation on SOFT FAIL (21-50)", async function () {
+            const contentHash = "repTest2";
+            await contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, "ipfs://test");
+
+            await contentRegistry.connect(auditor).updateAuditResult(contentHash, false, 30);
+
+            // Previous: User 1, Agent 2
+            // Delta: User -1, Agent -2
+            // New: User 0, Agent 0
+            expect(await trustScoreRegistry.userReputation(user.address)).to.equal(0);
+            expect(await trustScoreRegistry.agentReputation(agentId)).to.equal(0);
+        });
+
+        it("Should decrease reputation significantly on HARD FAIL (0-20)", async function () {
+            const contentHash = "repTest3";
+            await contentRegistry.connect(user).publishContent(contentHash, user.address, agentId, "ipfs://test");
+
+            await contentRegistry.connect(auditor).updateAuditResult(contentHash, false, 10);
+
+            // Previous: User 0, Agent 0
+            // Delta: User -2, Agent -4
+            // New: User -2, Agent -4
+            expect(await trustScoreRegistry.userReputation(user.address)).to.equal(-2);
+            expect(await trustScoreRegistry.agentReputation(agentId)).to.equal(-4);
+        });
+    });
 });

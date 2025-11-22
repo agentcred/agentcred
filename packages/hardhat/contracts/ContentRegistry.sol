@@ -3,6 +3,8 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+import "./TrustScoreRegistry.sol";
+
 interface IAgentStaking {
     function getStake(uint256 agentId) external view returns (uint256);
     function slash(uint256 agentId, uint256 amount, string memory reason) external;
@@ -28,6 +30,8 @@ contract ContentRegistry is AccessControl {
     
     // Reference to AgentStaking contract
     IAgentStaking public agentStaking;
+    // Reference to TrustScoreRegistry contract
+    TrustScoreRegistry public trustScoreRegistry;
 
     enum Status {
         Pending,
@@ -52,6 +56,7 @@ contract ContentRegistry is AccessControl {
     event ContentPublished(string contentHash, address indexed author, uint256 indexed agentId, string uri);
     event ContentAudited(string indexed contentHash, bool ok, uint256 score);
     event AgentStakingUpdated(address indexed newAgentStaking);
+    event TrustScoreRegistryUpdated(address indexed newTrustScoreRegistry);
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -65,6 +70,16 @@ contract ContentRegistry is AccessControl {
     function setAgentStaking(address _agentStaking) external onlyRole(DEFAULT_ADMIN_ROLE) {
         agentStaking = IAgentStaking(_agentStaking);
         emit AgentStakingUpdated(_agentStaking);
+    }
+
+    /**
+     * @notice Sets the TrustScoreRegistry contract address.
+     * @dev Only callable by admin.
+     * @param _trustScoreRegistry The address of the TrustScoreRegistry contract.
+     */
+    function setTrustScoreRegistry(address _trustScoreRegistry) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        trustScoreRegistry = TrustScoreRegistry(_trustScoreRegistry);
+        emit TrustScoreRegistryUpdated(_trustScoreRegistry);
     }
 
     /**
@@ -105,12 +120,45 @@ contract ContentRegistry is AccessControl {
         content.status = _ok ? Status.AuditedOk : Status.AuditedFail;
         content.auditScore = _score;
 
+        // Update Reputation
+        if (address(trustScoreRegistry) != address(0)) {
+            _updateReputation(content.author, content.agentId, uint8(_score));
+        }
+
         // If audit failed and AgentStaking is set, calculate and apply slash
         if (!_ok && address(agentStaking) != address(0)) {
             _handleSlashing(content.agentId, uint8(_score));
         }
 
         emit ContentAudited(_contentHash, _ok, _score);
+    }
+
+    /**
+     * @notice Updates reputation based on audit score.
+     * @param author The author of the content.
+     * @param agentId The agent ID.
+     * @param score The audit score.
+     */
+    function _updateReputation(address author, uint256 agentId, uint8 score) internal {
+        int256 userDelta;
+        int256 agentDelta;
+
+        if (score >= PASS_THRESHOLD) {
+            // Pass (51-100)
+            userDelta = 1;
+            agentDelta = 2;
+        } else if (score >= MILD_FAIL_THRESHOLD) {
+            // Soft Fail (21-50)
+            userDelta = -1;
+            agentDelta = -2;
+        } else {
+            // Hard Fail (0-20)
+            userDelta = -2;
+            agentDelta = -4;
+        }
+
+        trustScoreRegistry.adjustUserReputation(author, userDelta);
+        trustScoreRegistry.adjustAgentReputation(agentId, agentDelta);
     }
 
     /**

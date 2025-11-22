@@ -61,43 +61,13 @@ export async function POST(req: NextRequest) {
             score = 20;
         }
 
-        // 3. Update audit result (this triggers automatic slashing)
+        // 3. Update audit result (this triggers automatic slashing and reputation updates)
         const auditHash = await walletClient.writeContract({
             address: contentRegistryAddress,
             abi: contentRegistryAbi,
             functionName: "updateAuditResult",
             args: [contentHash, ok, BigInt(score)],
         });
-
-        // 4. Update reputation scores
-        const trustScoreRegistryAddress = deployedContracts[31337].TrustScoreRegistry.address;
-        const trustScoreRegistryAbi = deployedContracts[31337].TrustScoreRegistry.abi;
-
-        // Calculate reputation deltas
-        const userDelta = ok ? 1n : -1n;
-        const agentDelta = ok ? 2n : -3n;
-
-        // Update user reputation
-        const userRepHash = await walletClient.writeContract({
-            address: trustScoreRegistryAddress as `0x${string}`,
-            abi: trustScoreRegistryAbi,
-            functionName: "adjustUserReputation",
-            args: [author, userDelta],
-        });
-
-        // Update agent reputation
-        const agentRepHash = await walletClient.writeContract({
-            address: trustScoreRegistryAddress as `0x${string}`,
-            abi: trustScoreRegistryAbi,
-            functionName: "adjustAgentReputation",
-            args: [BigInt(agentId), agentDelta],
-        });
-
-        await Promise.all([
-            publicClient.waitForTransactionReceipt({ hash: userRepHash }),
-            publicClient.waitForTransactionReceipt({ hash: agentRepHash })
-        ]);
-        console.log(`Reputation updated: User ${userDelta}, Agent ${agentDelta}`);
 
         await publicClient.waitForTransactionReceipt({ hash: auditHash });
         console.log(`Audit completed: ok=${ok}, score=${score}`);

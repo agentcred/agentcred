@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     AgentStaking: {
-      address: "0x4C4a2f8c81640e47606d3fd77B353E87Ba015584",
+      address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
       abi: [
         {
           inputs: [
@@ -555,10 +555,10 @@ const deployedContracts = {
         revokeRole: "@openzeppelin/contracts/access/AccessControl.sol",
         supportsInterface: "@openzeppelin/contracts/access/AccessControl.sol",
       },
-      deployedOnBlock: 127,
+      deployedOnBlock: 5,
     },
     ContentRegistry: {
-      address: "0x21dF544947ba3E8b3c32561399E88B52Dc8b2823",
+      address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
       abi: [
         {
           inputs: [],
@@ -728,6 +728,19 @@ const deployedContracts = {
             },
           ],
           name: "RoleRevoked",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newTrustScoreRegistry",
+              type: "address",
+            },
+          ],
+          name: "TrustScoreRegistryUpdated",
           type: "event",
         },
         {
@@ -1050,6 +1063,19 @@ const deployedContracts = {
         {
           inputs: [
             {
+              internalType: "address",
+              name: "_trustScoreRegistry",
+              type: "address",
+            },
+          ],
+          name: "setTrustScoreRegistry",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
               internalType: "bytes4",
               name: "interfaceId",
               type: "bytes4",
@@ -1061,6 +1087,19 @@ const deployedContracts = {
               internalType: "bool",
               name: "",
               type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "trustScoreRegistry",
+          outputs: [
+            {
+              internalType: "contract TrustScoreRegistry",
+              name: "",
+              type: "address",
             },
           ],
           stateMutability: "view",
@@ -1099,10 +1138,10 @@ const deployedContracts = {
         revokeRole: "@openzeppelin/contracts/access/AccessControl.sol",
         supportsInterface: "@openzeppelin/contracts/access/AccessControl.sol",
       },
-      deployedOnBlock: 129,
+      deployedOnBlock: 7,
     },
     IdentityRegistry: {
-      address: "0x2E2Ed0Cfd3AD2f1d34481277b3204d807Ca2F8c2",
+      address: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
       abi: [
         {
           inputs: [],
@@ -1848,10 +1887,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 131,
+      deployedOnBlock: 9,
     },
     MockToken: {
-      address: "0xdbC43Ba45381e02825b14322cDdd15eC4B3164E6",
+      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       abi: [
         {
           inputs: [],
@@ -2196,10 +2235,10 @@ const deployedContracts = {
         transfer: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
         transferFrom: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       },
-      deployedOnBlock: 123,
+      deployedOnBlock: 1,
     },
     ReputationRegistry: {
-      address: "0xD8a5a9b31c3C0232E196d518E89Fd8bF83AcAd43",
+      address: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
       abi: [
         {
           inputs: [
@@ -2484,10 +2523,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 133,
+      deployedOnBlock: 11,
     },
     TrustScoreRegistry: {
-      address: "0x04C89607413713Ec9775E14b954286519d836FEf",
+      address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
       abi: [
         {
           inputs: [],
@@ -2866,10 +2905,10 @@ const deployedContracts = {
         revokeRole: "@openzeppelin/contracts/access/AccessControl.sol",
         supportsInterface: "@openzeppelin/contracts/access/AccessControl.sol",
       },
-      deployedOnBlock: 125,
+      deployedOnBlock: 3,
     },
     ValidationRegistry: {
-      address: "0xDC11f7E700A4c898AE5CAddB1082cFfa76512aDD",
+      address: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
       abi: [
         {
           inputs: [
@@ -3157,7 +3196,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 135,
+      deployedOnBlock: 13,
     },
   },
 } as const;
