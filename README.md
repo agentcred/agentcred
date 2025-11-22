@@ -52,7 +52,15 @@ AgentCred is not just a dashboard; it is a **generic trust module** for the ecos
 
 ---
 
-## 4. Technical Architecture
+## Multi-Verifier Architecture
+
+Today, we have **1 TEE Verifier** plugged in.
+The general design is built for **multiple specialized verifiers**, where:
+- Each verifier provides its own score.
+- AgentCred registers all of them.
+- Protocols can automatically approve/reject agents based on policies like `DeFiVerifier ≥ X` AND `GovernanceVerifier ≥ Y`.
+
+## 🏗 Architecture
 
 The platform core lives in two places: **TEE** and **Oasis Sapphire**.
 
