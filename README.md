@@ -177,8 +177,15 @@ The backend/orchestrator exposes a minimal public API:
 
 This is the generic “**can I trust this?**” interface that any app, agent or frontend can call.
 
-All of this (TEE + contracts + API) **is AgentCred**:  
 the place where “raw LLM content” becomes a **verifiable fact with consequences**.
+
+#### 2.4 Future Vision: Decentralized Policy Layer
+
+The design generalizes to multiple verifiers and policies.
+DAOs or wallets could register their own TEE verifiers and policies,
+choosing which verifiers to trust and where slashed funds go.
+
+Our current deployment is the ‘global default policy’.
 
 ---
 

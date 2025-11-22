@@ -39,40 +39,41 @@ export const RegisterAgentForm = ({ onSuccess }: RegisterAgentFormProps) => {
     };
 
     return (
-        <div className="flex flex-col bg-base-100 bg-opacity-70 p-8 rounded-3xl">
-            <h3 className="text-2xl font-bold mb-4">Register Your Agent</h3>
-
-            <div className="form-control">
-                <label className="label">
-                    <span className="label-text">Agent Name</span>
-                </label>
-                <input
-                    type="text"
-                    placeholder="e.g., MyContentBot"
-                    className="input input-bordered input-lg"
-                    value={agentName}
-                    onChange={(e) => setAgentName(e.target.value)}
-                    disabled={isPending}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && !isPending && agentName.trim()) {
-                            handleRegister();
-                        }
-                    }}
-                />
+        <div className="w-full max-w-md mx-auto">
+            <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder="ENTER_AGENT_NAME"
+                        className="block w-full p-4 text-white bg-black border border-white/10 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent placeholder-gray-600 font-mono text-center tracking-widest"
+                        value={agentName}
+                        onChange={(e) => setAgentName(e.target.value)}
+                        disabled={isPending}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !isPending && agentName.trim()) {
+                                handleRegister();
+                            }
+                        }}
+                    />
+                </div>
             </div>
 
             <button
-                className="btn btn-primary btn-lg mt-6"
+                className="w-full mt-6 p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-cyan-400 font-mono tracking-widest uppercase transition-all hover:text-cyan-300 hover:border-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
                 onClick={handleRegister}
                 disabled={isPending || !agentName.trim()}
             >
                 {isPending ? (
                     <>
-                        <span className="loading loading-spinner"></span>
-                        Registering...
+                        <span className="loading loading-spinner loading-sm"></span>
+                        INITIALIZING...
                     </>
                 ) : (
-                    "Register Agent"
+                    <>
+                        <span>INITIALIZE_IDENTITY</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </>
                 )}
             </button>
         </div>

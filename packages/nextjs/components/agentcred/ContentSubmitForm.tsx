@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 
 interface ContentSubmitFormProps {
     agentId: number;
@@ -14,51 +14,40 @@ export const ContentSubmitForm = ({ agentId, onSubmit, isLoading }: ContentSubmi
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!content.trim() || isLoading) return;
-
+        if (!content.trim()) return;
         await onSubmit(content);
         setContent("");
     };
 
     return (
-        <div className="bg-base-100 rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-4">Submit Content</h3>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <textarea
-                    className="textarea textarea-bordered w-full h-32 text-base"
-                    placeholder='Try "unsafe" to trigger slashing...'
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    disabled={isLoading}
-                />
-
-                <div className="flex items-center justify-between">
-                    <div className="text-sm opacity-70">
-                        Agent #{agentId}
-                    </div>
+        <div className="space-y-2">
+            <form onSubmit={handleSubmit} className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl opacity-30 group-hover:opacity-70 transition duration-500 blur"></div>
+                <div className="relative flex items-center bg-black rounded-xl p-2 border border-white/10">
+                    <div className="pl-3 pr-2 text-cyan-500 font-mono text-lg">{">"}</div>
+                    <input
+                        type="text"
+                        placeholder="Enter content hash or data to verify..."
+                        className="flex-grow bg-transparent border-none focus:ring-0 text-white placeholder-gray-600 font-mono outline-none"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        disabled={isLoading}
+                    />
                     <button
                         type="submit"
-                        className="btn btn-primary gap-2"
                         disabled={isLoading || !content.trim()}
+                        className="btn btn-sm bg-white/10 hover:bg-white/20 border-none text-white disabled:opacity-30"
                     >
                         {isLoading ? (
-                            <>
-                                <span className="loading loading-spinner loading-sm"></span>
-                                Processing...
-                            </>
+                            <span className="loading loading-spinner loading-xs"></span>
                         ) : (
-                            <>
-                                <PaperAirplaneIcon className="h-5 w-5" />
-                                Submit
-                            </>
+                            <span className="font-mono text-xs">EXECUTE</span>
                         )}
                     </button>
                 </div>
             </form>
-
-            <div className="mt-4 text-xs opacity-60 bg-base-200 rounded-lg p-3">
-                💡 <strong>Tip:</strong> Content with "unsafe" will fail auditing and trigger automatic slashing
+            <div className="text-xs text-gray-500 font-mono pl-2">
+                <span className="text-cyan-500">TIP:</span> Type "unsafe" to simulate a slashable offense.
             </div>
         </div>
     );

@@ -1,113 +1,118 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { formatEther } from "viem";
-import { useAccount } from "wagmi";
-import { CheckCircleIcon, XCircleIcon, ClockIcon } from "@heroicons/react/24/outline";
-
-interface AuditEvent {
-    contentHash: string;
-    timestamp: number;
-    ok: boolean;
-    score: number;
-    stakeBefore: bigint;
-    stakeAfter: bigint;
-    repBefore: number;
-    repAfter: number;
-    roflVerified?: boolean;
-}
+import { AgentEvent } from "~~/hooks/agentcred/useAgentEvents";
 
 interface SlashingTimelineProps {
     agentId: number;
-    events: AuditEvent[];
+    events: AgentEvent[];
 }
 
 export const SlashingTimeline = ({ agentId, events }: SlashingTimelineProps) => {
-    const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
+    // Events are already sorted by timestamp desc in the hook
+    const sortedEvents = events;
 
     if (events.length === 0) {
         return (
-            <div className="bg-base-100 rounded-2xl p-6">
-                <h3 className="text-xl font-bold mb-4">Activity Timeline</h3>
-                <p className="text-sm opacity-60">No audit history yet. Submit content to see results here.</p>
+            <div className="font-mono text-sm text-gray-500 p-4">
+                <span className="text-cyan-500">$</span> system_status --check
+                <br />
+                <span className="text-yellow-500">Waiting for input...</span>
             </div>
         );
     }
 
     return (
-        <div className="bg-base-100 rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-6">Activity Timeline</h3>
+        <div className="font-mono text-sm space-y-1">
+            {sortedEvents.map((event, idx) => {
+                const time = new Date(event.timestamp * 1000).toLocaleTimeString([], { hour12: false });
+                const key = `${event.transactionHash}-${idx}`;
 
-            <div className="space-y-4">
-                {sortedEvents.map((event, idx) => {
-                    const stakeChange = Number(event.stakeAfter - event.stakeBefore);
-                    const repChange = event.repAfter - event.repBefore;
-                    const percentChange = event.stakeBefore > 0n
-                        ? (Number(stakeChange) / Number(event.stakeBefore)) * 100
-                        : 0;
-
+                if (event.type === "published") {
                     return (
-                        <div
-                            key={`${event.contentHash}-${idx}`}
-                            className={`border-l-4 pl-4 py-3 ${event.ok ? 'border-success' : 'border-error'
-                                }`}
-                        >
-                            <div className="flex items-start justify-between mb-2">
+                        <div key={key} className="group hover:bg-white/5 p-1 rounded transition-colors">
+                            <div className="flex items-start gap-3">
+                                <span className="text-gray-600 select-none">[{time}]</span>
                                 <div className="flex items-center gap-2">
-                                    {event.ok ? (
-                                        <CheckCircleIcon className="h-5 w-5 text-success" />
-                                    ) : (
-                                        <XCircleIcon className="h-5 w-5 text-error" />
-                                    )}
-                                    <span className="font-semibold">
-                                        {event.ok ? 'Content Approved' : 'Content Failed'}
-                                    </span>
-                                    <span className="badge badge-sm">{event.score}</span>
+                                    <span className="text-blue-400">CONTENT_PUB</span>
+                                    <span className="text-gray-500">::</span>
+                                    <span className="text-white">{event.data.contentHash?.slice(0, 12)}...</span>
                                 </div>
-                                <span className="text-xs opacity-60">
-                                    {new Date(event.timestamp * 1000).toLocaleTimeString()}
-                                </span>
-                            </div>
-
-                            {!event.ok && stakeChange < 0 && (
-                                <div className="bg-error bg-opacity-10 rounded-lg p-3 mb-2">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span>Stake:</span>
-                                        <div className="flex items-center gap-2">
-                                            <span className="opacity-70">{formatEther(event.stakeBefore)}</span>
-                                            <span>→</span>
-                                            <span className="font-bold text-error">
-                                                {formatEther(event.stakeAfter)}
-                                            </span>
-                                            <span className="badge badge-error badge-sm">
-                                                {percentChange.toFixed(0)}%
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex items-center gap-4 text-xs opacity-70">
-                                <div>
-                                    Rep: {event.repBefore} → {event.repAfter}
-                                    <span className={repChange > 0 ? 'text-success' : 'text-error'}>
-                                        {' '}({repChange > 0 ? '+' : ''}{repChange})
-                                    </span>
-                                </div>
-                                {event.roflVerified && (
-                                    <div className="badge badge-sm gap-1">
-                                        🔒 ROFL
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="text-xs opacity-40 mt-1 font-mono">
-                                {event.contentHash.slice(0, 16)}...
                             </div>
                         </div>
                     );
-                })}
-            </div>
+                }
+
+                if (event.type === "audited") {
+                    const ok = event.data.ok;
+                    const score = Number(event.data.score);
+                    const contentHash = event.data.contentHash || "unknown";
+
+                    return (
+                        <div key={key} className="group hover:bg-white/5 p-1 rounded transition-colors">
+                            <div className="flex items-start gap-3">
+                                <span className="text-gray-600 select-none">[{time}]</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={ok ? "text-green-400" : "text-red-400"}>
+                                        {ok ? "AUDIT_PASS" : "AUDIT_FAIL"}
+                                    </span>
+                                    <span className="text-gray-500">::</span>
+                                    <span className="text-white">{contentHash.slice(0, 12)}...</span>
+                                    <span className="text-gray-500">::</span>
+                                    <span className={score >= 50 ? "text-green-400" : score >= 20 ? "text-yellow-400" : "text-red-400"}>
+                                        SCORE_{score}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (event.type === "slashed") {
+                    const amount = formatEther(BigInt(event.data.amount || 0));
+                    const reason = event.data.reason || "Unknown";
+
+                    return (
+                        <div key={key} className="group hover:bg-white/5 p-1 rounded transition-colors bg-red-900/10">
+                            <div className="flex items-start gap-3">
+                                <span className="text-gray-600 select-none">[{time}]</span>
+                                <div className="flex flex-col">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-red-500 font-bold">!!! SLASHED !!!</span>
+                                        <span className="text-gray-500">::</span>
+                                        <span className="text-red-400">-{amount} CRED</span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">REASON: {reason}</div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+
+                if (event.type === "reputation") {
+                    const newScore = Number(event.data.newScore || 0);
+                    const delta = Number(event.data.delta || 0);
+
+                    return (
+                        <div key={key} className="group hover:bg-white/5 p-1 rounded transition-colors">
+                            <div className="flex items-start gap-3">
+                                <span className="text-gray-600 select-none">[{time}]</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-purple-400">REP_UPDATE</span>
+                                    <span className="text-gray-500">::</span>
+                                    <span className={delta >= 0 ? "text-green-400" : "text-red-400"}>
+                                        {delta >= 0 ? "+" : ""}{delta}
+                                    </span>
+                                    <span className="text-gray-500">&rarr;</span>
+                                    <span className="text-white">{newScore}</span>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+
+                return null;
+            })}
         </div>
     );
 };

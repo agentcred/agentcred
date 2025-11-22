@@ -11,36 +11,30 @@ interface StatsPanelProps {
 
 export const StatsPanel = ({ totalAudits, successRate, totalSlashed }: StatsPanelProps) => {
     return (
-        <div className="bg-base-100 rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-4">Stats</h3>
-
-            <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
-                    <div className="flex items-center gap-2">
-                        <ChartBarIcon className="h-5 w-5 text-info" />
-                        <span className="text-sm">Total Audits</span>
-                    </div>
-                    <span className="text-2xl font-bold">{totalAudits}</span>
+        <div className="space-y-4">
+            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Success Rate</div>
+                <div className="flex items-end gap-2">
+                    <div className="text-4xl font-bold font-mono text-white">{successRate.toFixed(1)}%</div>
+                    <div className="text-sm text-gray-500 mb-1">of audits passed</div>
                 </div>
-
-                <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
-                    <div className="flex items-center gap-2">
-                        <ShieldCheckIcon className="h-5 w-5 text-success" />
-                        <span className="text-sm">Success Rate</span>
-                    </div>
-                    <span className="text-2xl font-bold text-success">{successRate}%</span>
+                <div className="w-full bg-gray-800 h-1 mt-4 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-gradient-to-r from-cyan-500 to-purple-500"
+                        style={{ width: `${successRate}%` }}
+                    />
                 </div>
+            </div>
 
-                <div className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
-                    <div className="flex items-center gap-2">
-                        <BanknotesIcon className="h-5 w-5 text-error" />
-                        <span className="text-sm">Total Slashed</span>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-2xl font-bold text-error">
-                            {formatEther(totalSlashed)}
-                        </div>
-                        <div className="text-xs opacity-60">USDC</div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
+                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Audits</div>
+                    <div className="text-2xl font-bold font-mono text-white">{totalAudits}</div>
+                </div>
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
+                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Slashed</div>
+                    <div className="text-2xl font-bold font-mono text-red-400">
+                        {Number(formatEther(totalSlashed)).toFixed(0)}
                     </div>
                 </div>
             </div>
