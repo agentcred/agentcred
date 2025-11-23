@@ -100,8 +100,10 @@ jobs:
       
       - name: Update enclave identity
         working-directory: packages/rofl-poc
+        env:
+          OASIS_WALLET_PASSPHRASE: ${{ secrets.OASIS_WALLET_PASSPHRASE }}
         run: |
-          docker run --platform linux/amd64 \
+          printf "${{ secrets.OASIS_WALLET_PASSPHRASE }}\n" | docker run --platform linux/amd64 \
             --volume $(pwd):/src \
             --volume $HOME/.config/oasis:/root/.config/oasis \
             -i \
