@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPublicClient, createWalletClient, http, keccak256, stringToBytes } from "viem";
-import { hardhat } from "viem/chains";
+import { sapphireTestnet } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import deployedContracts from "~~/contracts/deployedContracts";
 
@@ -24,20 +24,20 @@ export async function POST(req: NextRequest) {
 
         // Setup clients
         const publicClient = createPublicClient({
-            chain: hardhat,
+            chain: sapphireTestnet,
             transport: http(),
         });
 
         const account = privateKeyToAccount(AUDITOR_PRIVATE_KEY as `0x${string}`);
         const walletClient = createWalletClient({
             account,
-            chain: hardhat,
+            chain: sapphireTestnet,
             transport: http(),
         });
 
         // Get ContentRegistry contract
-        const contentRegistryAddress = deployedContracts[hardhat.id].ContentRegistry.address as `0x${string}`;
-        const contentRegistryAbi = deployedContracts[hardhat.id].ContentRegistry.abi;
+        const contentRegistryAddress = deployedContracts[sapphireTestnet.id].ContentRegistry.address as `0x${string}`;
+        const contentRegistryAbi = deployedContracts[sapphireTestnet.id].ContentRegistry.abi;
 
         // 1. Publish content
         const uri = `data:text/plain;base64,${Buffer.from(content).toString("base64")}`;
@@ -52,16 +52,44 @@ export async function POST(req: NextRequest) {
         await publicClient.waitForTransactionReceipt({ hash: publishHash });
         console.log(`Content published: ${contentHash}`);
 
-        // 2. Fake Auditor Logic
-        let ok = true;
-        let score = 100;
+        // 2. Call ROFL Agent for Verification
+        // Prioritize env var, then local (for testing), then remote
+        const ROFL_APP_URL = process.env.ROFL_APP_URL || "http://127.0.0.1:3001";
+        console.log(`Calling ROFL agent at ${ROFL_APP_URL}/verify...`);
 
-        if (content.toLowerCase().includes("unsafe")) {
-            ok = false;
-            score = 20;
+        let ok = false;
+        let score = 0;
+
+        try {
+            const roflResponse = await fetch(`${ROFL_APP_URL}/verify`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ content }),
+            });
+
+            if (!roflResponse.ok) {
+                throw new Error(`ROFL agent returned ${roflResponse.status}`);
+            }
+
+            const roflData = await roflResponse.json();
+            ok = roflData.ok;
+            score = roflData.score;
+            console.log("ROFL Verdict:", roflData);
+
+        } catch (error) {
+            console.error("Failed to connect to ROFL agent:", error);
+            // Fallback for demo/testing if ROFL is offline
+            console.log("Falling back to local check...");
+            if (!content.toLowerCase().includes("unsafe")) {
+                ok = true;
+                score = 80;
+            }
         }
 
-        // 3. Update audit result (this triggers automatic slashing and reputation updates)
+        // 3. Update audit result (Auditor Wallet submits the verdict)
+        // In the future, the ROFL agent itself should sign this transaction via TEE
         const auditHash = await walletClient.writeContract({
             address: contentRegistryAddress,
             abi: contentRegistryAbi,

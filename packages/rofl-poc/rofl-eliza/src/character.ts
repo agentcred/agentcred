@@ -13,7 +13,7 @@ export const character: Character = {
   name: 'Eliza',
   plugins: [
     // Core plugins first
-    '@elizaos/plugin-sql',
+    '@elizaos/plugin-sql', // Now using PostgreSQL instead of pglite
 
     // Text-only plugins (no embedding support)
     ...(process.env.ANTHROPIC_API_KEY?.trim() ? ['@elizaos/plugin-anthropic'] : []),
@@ -29,9 +29,9 @@ export const character: Character = {
     // Platform plugins
     ...(process.env.DISCORD_API_TOKEN?.trim() ? ['@elizaos/plugin-discord'] : []),
     ...(process.env.TWITTER_API_KEY?.trim() &&
-    process.env.TWITTER_API_SECRET_KEY?.trim() &&
-    process.env.TWITTER_ACCESS_TOKEN?.trim() &&
-    process.env.TWITTER_ACCESS_TOKEN_SECRET?.trim()
+      process.env.TWITTER_API_SECRET_KEY?.trim() &&
+      process.env.TWITTER_ACCESS_TOKEN?.trim() &&
+      process.env.TWITTER_ACCESS_TOKEN_SECRET?.trim()
       ? ['@elizaos/plugin-twitter']
       : []),
     ...(process.env.TELEGRAM_BOT_TOKEN?.trim() ? ['@elizaos/plugin-telegram'] : []),

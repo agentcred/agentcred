@@ -1,14 +1,31 @@
 services:
+  postgres:
+    image: ankane/pgvector:v0.5.1
+    platform: linux/amd64
+    environment:
+      - POSTGRES_DB=elizaos
+      - POSTGRES_USER=eliza
+      - POSTGRES_PASSWORD=eliza123
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eliza"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   rofl-eliza:
     build: ./rofl-eliza
     image: docker.io/filipeai/rofl-eliza:latest
     platform: linux/amd64
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - POSTGRES_URL=postgresql://eliza:eliza123@postgres:5432/elizaos
     ports:
-      - "3000:3000"
-    volumes:
-      - eliza-storage:/root/.eliza
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   rofl-8004:
     image: ghcr.io/oasisprotocol/rofl-8004@sha256:f57373103814a0ca4c0a03608284451221b026e695b0b8ce9ca3d4153819a349
@@ -20,4 +37,4 @@ services:
       - /run/rofl-appd.sock:/run/rofl-appd.sock
 
 volumes:
-  eliza-storage:
+  postgres-data:

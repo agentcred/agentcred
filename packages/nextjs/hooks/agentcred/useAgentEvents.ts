@@ -3,6 +3,7 @@ import { usePublicClient } from "wagmi";
 import { useTargetNetwork } from "../scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 import { keccak256, toBytes, stringToBytes } from "viem";
+import { fetchLogsWithChunking } from "~~/utils/fetchLogsWithChunking";
 
 export interface AgentEvent {
     type: "published" | "audited" | "slashed" | "reputation";
@@ -26,9 +27,9 @@ export const useAgentEvents = (agentId: number | undefined) => {
 
         try {
             setIsLoading(true);
-            const contentRegistry = contracts[targetNetwork.id]?.ContentRegistry;
-            const agentStaking = contracts[targetNetwork.id]?.AgentStaking;
-            const trustScoreRegistry = contracts[targetNetwork.id]?.TrustScoreRegistry;
+            const contentRegistry = contracts?.[targetNetwork.id]?.ContentRegistry;
+            const agentStaking = contracts?.[targetNetwork.id]?.AgentStaking;
+            const trustScoreRegistry = contracts?.[targetNetwork.id]?.TrustScoreRegistry;
 
             if (!contentRegistry || !agentStaking || !trustScoreRegistry) {
                 console.error("Contracts not found");
@@ -37,7 +38,8 @@ export const useAgentEvents = (agentId: number | undefined) => {
             }
 
             // 1. Fetch ContentPublished events for this agent
-            const publishedLogs = await publicClient.getLogs({
+            const contentRegistryFromBlock = BigInt(contentRegistry.deployedOnBlock || 0);
+            const publishedLogs = await fetchLogsWithChunking(publicClient, {
                 address: contentRegistry.address as `0x${string}`,
                 event: {
                     type: "event",
@@ -52,12 +54,13 @@ export const useAgentEvents = (agentId: number | undefined) => {
                 args: {
                     agentId: BigInt(agentId),
                 },
-                fromBlock: 0n,
+                fromBlock: contentRegistryFromBlock,
                 toBlock: "latest",
             });
 
             // 2. Fetch Slashed events for this agent
-            const slashedLogs = await publicClient.getLogs({
+            const agentStakingFromBlock = BigInt(agentStaking.deployedOnBlock || 0);
+            const slashedLogs = await fetchLogsWithChunking(publicClient, {
                 address: agentStaking.address as `0x${string}`,
                 event: {
                     type: "event",
@@ -71,12 +74,13 @@ export const useAgentEvents = (agentId: number | undefined) => {
                 args: {
                     agentId: BigInt(agentId),
                 },
-                fromBlock: 0n,
+                fromBlock: agentStakingFromBlock,
                 toBlock: "latest",
             });
 
             // 3. Fetch Reputation events for this agent
-            const repLogs = await publicClient.getLogs({
+            const trustScoreRegistryFromBlock = BigInt(trustScoreRegistry.deployedOnBlock || 0);
+            const repLogs = await fetchLogsWithChunking(publicClient, {
                 address: trustScoreRegistry.address as `0x${string}`,
                 event: {
                     type: "event",
@@ -90,13 +94,13 @@ export const useAgentEvents = (agentId: number | undefined) => {
                 args: {
                     agentId: BigInt(agentId),
                 },
-                fromBlock: 0n,
+                fromBlock: trustScoreRegistryFromBlock,
                 toBlock: "latest",
             });
 
             // 4. Fetch ContentAudited events (global, filter by hash later)
             // Note: ContentAudited doesn't index agentId, so we fetch all and match by contentHash
-            const auditedLogs = await publicClient.getLogs({
+            const auditedLogs = await fetchLogsWithChunking(publicClient, {
                 address: contentRegistry.address as `0x${string}`,
                 event: {
                     type: "event",
@@ -107,7 +111,8 @@ export const useAgentEvents = (agentId: number | undefined) => {
                         { indexed: false, name: "score", type: "uint256" },
                     ],
                 },
-                fromBlock: 0n,
+                args: {}, // No args for this one
+                fromBlock: contentRegistryFromBlock,
                 toBlock: "latest",
             });
 

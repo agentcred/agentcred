@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 import { useTargetNetwork } from "../scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
+import { fetchLogsWithChunking } from "~~/utils/fetchLogsWithChunking";
 
 export interface ContentInfo {
     contentHash: string;
@@ -32,7 +33,7 @@ export const useUserContents = (address: string | undefined) => {
             try {
                 setIsLoading(true);
 
-                const contentRegistry = contracts[targetNetwork.id]?.ContentRegistry;
+                const contentRegistry = contracts?.[targetNetwork.id]?.ContentRegistry;
                 if (!contentRegistry) {
                     console.error("ContentRegistry not found");
                     setIsLoading(false);
@@ -40,7 +41,8 @@ export const useUserContents = (address: string | undefined) => {
                 }
 
                 // Fetch ContentPublished events for this author
-                const publishedEvents = await publicClient.getLogs({
+                const fromBlock = BigInt(contentRegistry.deployedOnBlock || 0);
+                const publishedEvents = await fetchLogsWithChunking(publicClient, {
                     address: contentRegistry.address as `0x${string}`,
                     event: {
                         type: "event",
@@ -55,7 +57,7 @@ export const useUserContents = (address: string | undefined) => {
                     args: {
                         author: address as `0x${string}`,
                     },
-                    fromBlock: 0n,
+                    fromBlock,
                     toBlock: "latest",
                 });
 

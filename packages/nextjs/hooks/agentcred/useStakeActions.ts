@@ -17,8 +17,8 @@ export const useStakeActions = () => {
     const [error, setError] = useState<string | null>(null);
     const [txHash, setTxHash] = useState<string | null>(null);
 
-    const mockToken = contracts[targetNetwork.id]?.MockToken;
-    const agentStaking = contracts[targetNetwork.id]?.AgentStaking;
+    const mockToken = contracts?.[targetNetwork.id]?.MockToken;
+    const agentStaking = contracts?.[targetNetwork.id]?.AgentStaking;
 
     /**
      * Mint test tokens to user's address (for PoC only)

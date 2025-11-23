@@ -21,6 +21,7 @@ deployments:
     network: testnet
     paratime: sapphire
     admin: agentcred_deployer
+    oci_repository: rofl.sh/9d691ad8-0c67-4d01-b5fc-bca70d15ebda:1763858110
     trust_root:
       height: 29458588
       hash: 35bd5ab50b7185cae117890abb48542781230313a4973d7cb3085633231cb5da
@@ -31,9 +32,18 @@ deployments:
           min_tcb_evaluation_data_number: 18
           tdx: {}
       enclaves:
-        - id: LbVf61427hmAu4O1rw8Dz0hO0FygQ7+k6hqLuDg1PLYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-        - id: Y0q4gG0LicYVTTV3hlYwJIdVmuS0ZmrpRH8HqnXve0EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - id: JMQQrTcF65NlBShgfyhfNnGqtaFtL/ceSYYeBNksCPoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - id: 0nXkECwIlOL/cKE4Lp62qdfOk+Q0Bx6Hq2umdKSbOjQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
       endorsements:
         - any: {}
       fees: endorsing_node
       max_expiration: 3
+    secrets:
+      - name: PINATA_JWT
+        value: pGJwa1ggpy+uSBQ1OUUEumw+oyrMT7RiWNU0gosXNKHgE7ZNDgZkbmFtZVgaLuKtklvFbYd7iLtP7noEPBTcDeyTSAsevtVlbm9uY2VP9/Erb2AmxnqzDuyL4LMgZXZhbHVlWQK1kuCmyb84lxAiJ/bUf9QbxffSoDZfDIiJm+xfLxnRAD2CjaRd6UrlbqO+CX0pzhYlNmr6lFu0n9nsD+709h6uhl1ZPr4pDHxTmaJYDwqN5ZiJYlwUlkTfyblSZJ2Yz96/ZqL1M65oQBYaoEaDUI+JdRm9nvb2lU4cwdeITSKi00wkro+0QBBpFhCThMsqd3PxxArwhRWThKqKkNO1fH5RJxpJCdJIHydUFBc8Wh5CB4JHglT1TzhXBtZBN+lgNdsuRsXXgIShIkFjVQcNZwID4TBSbAMq+TW7bqbsQCcBPG0x+5aEEErkdNZl/yUT3GIFrmyCfDuTfkYazqxhEA5Hp4VGpRyZd9hOg+lZAipNv9cSeNrIs5i34O3v+9TbfctMrxP8Cw2uUXJQQwCvNZPPoeSKxywkALXhVgkqKpslEB4MR8mKP/Zpn9AbiKwvqjhFOmYVrT2DYzYU98KTm2OFUwaS+iq7Ad2RxvOJKcABfgGRzBLnRKolBPebe11VHdSqgAzM1HjsuYF/uN05OztnIVIv/YWApSUaCKQIQHRaBXHzabXrLGeajTqobXsmI+VPdRxwL3neVQ8vW+wjEtCjLzJ9aTBVQHNFyMq2lWCPKogfUQrQxufKQCUOM17YK34lK/iz9GYJSVkKRNKGw0fCutOTU3FuinQImrYpZb80UPnEg8Yf4ZOmizT68hO4KaOqFrVnlv0OIorrmak/l0F1O1am3TjGcqGXND2j19ospBIkaPRAuju9vvunOQhhV+5RYmPmQKZ0JIx5JBkzXjJZvoaNklfGKHzJ6w1lyMU09MM35Cx0AUwOF9GKPppUgry+LO5LeoyclEK3NCdcTHGuiSo99hc5HfbUM4LBEAIcliG0WOtvmsa5AvwlancaX7Po/s0v1yuWmogTfzl8y3Wv3U+QEBSb
+      - name: OPENAI_API_KEY
+        value: pGJwa1gg/Bkc0WLCF8aQsOzfHCX2rKsyymwZIZFygRU7etCNdRxkbmFtZVge0ZEnZYjHfTvepJXLWJvTlaBzkkbfs3QzhMnNzUkFZW5vbmNlTxZwHLoBl/ENY9yk9vXW0mV2YWx1ZVi1gWxB1FaCRYTy4m/iAQA/S2fOrrJwRGuWquXWd9Knu7AnMr3jilJxC8tmBA8biuVQsXxUSepMJ/rK/9HlZr5RRnA3dby2U0zSEI9i+qTt6FfM5dMtI3sVuI/Joc4dQ4omGjmrwsvS4LFsIKOXX+K/UkiTF/nKzlXemUfnwHe0ET7FaHhFuyMkVA16Ddn8ntkxob2vteC5EI71FmMSpdkZZxpds2HttWMnrOeabfqMgk8hngF3kA==
+    machines:
+      default:
+        provider: oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz
+        id: "0000000000000463"

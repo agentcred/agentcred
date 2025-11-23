@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 import { useTargetNetwork } from "../scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
+import { fetchLogsWithChunking } from "~~/utils/fetchLogsWithChunking";
 
 export interface AgentInfo {
     agentId: number;
@@ -27,7 +28,7 @@ export const useUserAgents = (address: string | undefined) => {
 
         try {
             setIsLoading(true);
-            const identityRegistry = contracts[targetNetwork.id]?.IdentityRegistry;
+            const identityRegistry = contracts?.[targetNetwork.id]?.IdentityRegistry;
             if (!identityRegistry) {
                 console.error("IdentityRegistry not found");
                 setIsLoading(false);
@@ -36,7 +37,8 @@ export const useUserAgents = (address: string | undefined) => {
 
             // Get Transfer events where 'to' is the user's address
             // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)
-            const transferEvents = await publicClient.getLogs({
+            const fromBlock = BigInt(identityRegistry.deployedOnBlock || 0);
+            const transferEvents = await fetchLogsWithChunking(publicClient, {
                 address: identityRegistry.address as `0x${string}`,
                 event: {
                     type: "event",
@@ -50,7 +52,7 @@ export const useUserAgents = (address: string | undefined) => {
                 args: {
                     to: address as `0x${string}`,
                 },
-                fromBlock: 0n,
+                fromBlock,
                 toBlock: "latest",
             });
 

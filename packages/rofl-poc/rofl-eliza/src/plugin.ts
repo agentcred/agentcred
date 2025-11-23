@@ -237,10 +237,29 @@ const plugin: Plugin = {
       name: 'helloworld',
       path: '/helloworld',
       type: 'GET',
-      handler: async (_req: any, res: any) => {
-        // send a response
+      handler: async (_req: any, res: any, _runtime: IAgentRuntime) => {
         res.json({
           message: 'Hello World!',
+        });
+      },
+    },
+    {
+      name: 'verify',
+      path: '/verify',
+      type: 'POST',
+      handler: async (req: any, res: any, _runtime: IAgentRuntime) => {
+        const { content } = req.body;
+        logger.info(`Verifying content: ${content}`);
+
+        // TODO: Use runtime to call LLM for actual verification
+        // For now, return a mock success response to prove connection
+
+        const isUnsafe = content?.toLowerCase().includes("unsafe");
+
+        res.json({
+          ok: !isUnsafe,
+          score: isUnsafe ? 20 : 95,
+          reason: isUnsafe ? "Flagged as unsafe content" : "Verified by ROFL Agent (PoC)",
         });
       },
     },

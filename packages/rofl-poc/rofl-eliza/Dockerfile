@@ -27,29 +27,32 @@ RUN echo '#!/bin/bash\nexec /app/node_modules/.bin/elizaos "$@"' > /usr/local/bi
     chmod +x /usr/local/bin/elizaos
 
 # Set working directory
+# Create app directory and set permissions
+RUN mkdir -p /app && chown -R node:node /app
+
+# Set working directory
 WORKDIR /app
-
-# Copy package files first for better caching
-COPY package.json bun.lock* ./
-
-# Install dependencies
-RUN bun install
-
-# Copy the rest of the application
-COPY . .
-
-# Build the application
-RUN bun run build
-
-# Change ownership of the app directory to node user
-RUN chown -R node:node /app
-
-# Create node user's bun directory
-RUN mkdir -p /home/node/.bun && chown -R node:node /home/node/.bun
 
 # Switch to non-root user
 USER node
 
+# Copy package files (as node user)
+COPY --chown=node:node package.json bun.lock* ./
+
+# Install dependencies
+RUN bun install
+
+# Copy the rest of the application (as node user)
+COPY --chown=node:node . .
+
+# Build the application
+RUN bun run build
+
+# Create node user's bun directory (if not exists)
+RUN mkdir -p /home/node/.bun
+
+# Switch back to root for startup script
+USER root
 
 # Environment variables should be provided at runtime (e.g., via docker-compose.yaml)
 
@@ -57,5 +60,6 @@ USER node
 EXPOSE 3000
 
 
-# Start the application
-CMD ["elizaos", "start"]
+# Start the application with permission fix
+# Create the .eliza directory and ensure proper ownership before running as node
+CMD mkdir -p /app/.eliza && chown -R node:node /app/.eliza && su -s /bin/bash node -c "elizaos start"

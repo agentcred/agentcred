@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAccount } from "wagmi";
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 interface RegisterAgentFormProps {
@@ -8,20 +9,35 @@ interface RegisterAgentFormProps {
 }
 
 export const RegisterAgentForm = ({ onSuccess }: RegisterAgentFormProps) => {
+    const { address } = useAccount();
     const [agentName, setAgentName] = useState("");
 
-    const { writeContractAsync, isPending } = useScaffoldWriteContract("IdentityRegistry");
+    const { writeContractAsync, isPending } = useScaffoldWriteContract({
+        contractName: "IdentityRegistry",
+        disableSimulate: true,
+    });
 
     const handleRegister = async () => {
         if (!agentName.trim()) return;
 
         try {
-            const tokenURI = `ipfs://agent-${agentName.replace(/\s+/g, "-").toLowerCase()}`;
+            // Create metadata object
+            const metadata = {
+                name: agentName,
+                description: `AgentCred Agent: ${agentName}`,
+                image: "https://agentcred.vercel.app/agent-placeholder.png", // Placeholder
+            };
+
+            // Encode as Data URI
+            const jsonString = JSON.stringify(metadata);
+            const base64String = Buffer.from(jsonString).toString("base64");
+            const tokenURI = `data:application/json;base64,${base64String}`;
 
             await writeContractAsync({
                 functionName: "register",
                 args: [tokenURI],
-            });
+                account: address,
+            } as any);
 
             setAgentName("");
 

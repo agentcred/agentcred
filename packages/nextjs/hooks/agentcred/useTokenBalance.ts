@@ -21,7 +21,7 @@ export const useTokenBalance = () => {
 
         try {
             setIsLoading(true);
-            const mockToken = contracts[targetNetwork.id]?.MockToken;
+            const mockToken = contracts?.[targetNetwork.id]?.MockToken;
             if (!mockToken) {
                 console.error("MockToken not found");
                 setIsLoading(false);

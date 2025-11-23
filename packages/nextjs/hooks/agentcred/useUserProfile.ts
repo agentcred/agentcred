@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 import { useTargetNetwork } from "../scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
+import { fetchLogsWithChunking } from "~~/utils/fetchLogsWithChunking";
 
 export interface UserProfile {
     address: string;
@@ -14,6 +15,8 @@ export interface AgentInfo {
     reputation: number;
     stake: bigint;
     owner: string;
+    name?: string;
+    image?: string;
 }
 
 /**
@@ -35,8 +38,8 @@ export const useUserProfile = (address: string | undefined) => {
             try {
                 setIsLoading(true);
 
-                const trustScoreRegistry = contracts[targetNetwork.id]?.TrustScoreRegistry;
-                const agentStaking = contracts[targetNetwork.id]?.AgentStaking;
+                const trustScoreRegistry = contracts?.[targetNetwork.id]?.TrustScoreRegistry;
+                const agentStaking = contracts?.[targetNetwork.id]?.AgentStaking;
 
                 if (!trustScoreRegistry || !agentStaking) {
                     console.error("Contracts not found");
@@ -52,22 +55,50 @@ export const useUserProfile = (address: string | undefined) => {
                     args: [address],
                 }) as bigint;
 
-                // For PoC, we'll fetch data for agents 1 and 2
-                // In production, we'd index Staked events to find user's agents
+                // Dynamic agent discovery via Transfer events
+                const identityRegistry = contracts?.[targetNetwork.id]?.IdentityRegistry;
                 const agents: AgentInfo[] = [];
+                const processedAgentIds = new Set<number>();
 
-                for (let agentId = 1; agentId <= 2; agentId++) {
-                    try {
-                        // Get agent owner
-                        const owner = await publicClient.readContract({
-                            address: agentStaking.address as `0x${string}`,
-                            abi: agentStaking.abi,
-                            functionName: "agentOwners",
-                            args: [BigInt(agentId)],
-                        }) as string;
+                if (identityRegistry) {
+                    // Find all tokens ever transferred to this user
+                    const fromBlock = BigInt(identityRegistry.deployedOnBlock || 0);
+                    const transferEvents = await fetchLogsWithChunking(publicClient, {
+                        address: identityRegistry.address as `0x${string}`,
+                        event: {
+                            type: "event",
+                            name: "Transfer",
+                            inputs: [
+                                { indexed: true, name: "from", type: "address" },
+                                { indexed: true, name: "to", type: "address" },
+                                { indexed: true, name: "tokenId", type: "uint256" },
+                            ],
+                        },
+                        args: {
+                            to: address as `0x${string}`,
+                        },
+                        fromBlock,
+                        toBlock: "latest",
+                    });
 
-                        // Only include if this user owns the agent
-                        if (owner.toLowerCase() === address.toLowerCase()) {
+                    // Process each potential agent
+                    for (const event of transferEvents) {
+                        const agentId = Number(event.args.tokenId);
+
+                        if (processedAgentIds.has(agentId)) continue;
+                        processedAgentIds.add(agentId);
+
+                        try {
+                            // Verify current ownership
+                            const owner = await publicClient.readContract({
+                                address: identityRegistry.address as `0x${string}`,
+                                abi: identityRegistry.abi,
+                                functionName: "ownerOf",
+                                args: [BigInt(agentId)],
+                            }) as string;
+
+                            if (owner.toLowerCase() !== address.toLowerCase()) continue;
+
                             // Get agent reputation
                             const agentRep = await publicClient.readContract({
                                 address: trustScoreRegistry.address as `0x${string}`,
@@ -84,16 +115,39 @@ export const useUserProfile = (address: string | undefined) => {
                                 args: [BigInt(agentId)],
                             }) as bigint;
 
+                            // Get token URI (metadata)
+                            let name = `Agent #${agentId}`;
+                            let image = "";
+
+                            try {
+                                const tokenURI = await publicClient.readContract({
+                                    address: identityRegistry.address as `0x${string}`,
+                                    abi: identityRegistry.abi,
+                                    functionName: "tokenURI",
+                                    args: [BigInt(agentId)],
+                                }) as string;
+
+                                if (tokenURI.startsWith("data:application/json;base64,")) {
+                                    const base64 = tokenURI.split(",")[1];
+                                    const json = JSON.parse(atob(base64));
+                                    if (json.name) name = json.name;
+                                    if (json.image) image = json.image;
+                                }
+                            } catch (e) {
+                                console.error(`Error fetching metadata for agent ${agentId}`, e);
+                            }
+
                             agents.push({
                                 agentId,
                                 reputation: Number(agentRep),
                                 stake,
                                 owner,
+                                name,
+                                image,
                             });
+                        } catch (err) {
+                            console.error(`Error processing agent ${agentId}`, err);
                         }
-                    } catch (err) {
-                        // Agent doesn't exist or error fetching - skip
-                        continue;
                     }
                 }
 
