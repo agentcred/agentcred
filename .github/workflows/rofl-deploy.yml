@@ -8,11 +8,11 @@ on:
         required: false
         type: boolean
         default: false
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/rofl-poc/**'
+      replace-machine:
+        description: 'Replace missing machine if needed'
+        required: false
+        type: boolean
+        default: false
 
 env:
   DOCKER_IMAGE: docker.io/filipeai/rofl-eliza:latest
@@ -91,6 +91,16 @@ jobs:
           CLEAN_SECRET=$(echo "${{ secrets.OASIS_WALLET }}" | tr -d '\n' | xargs)
           printf "${{ secrets.OASIS_WALLET_PASSPHRASE }}\n${{ secrets.OASIS_WALLET_PASSPHRASE }}\n" | oasis wallet import agentcred_deployer --secret "$CLEAN_SECRET" --algorithm ed25519-adr8 --yes
       
+      - name: Update enclave identity
+        working-directory: packages/rofl-poc
+        run: |
+          docker run --platform linux/amd64 \
+            --volume $(pwd):/src \
+            --volume $HOME/.config/oasis:/root/.config/oasis \
+            -i \
+            ghcr.io/oasisprotocol/rofl-dev:main \
+            oasis rofl update --account agentcred_deployer --yes
+
       - name: Deploy to testnet
         working-directory: packages/rofl-poc
         env:
@@ -101,4 +111,4 @@ jobs:
             --volume $HOME/.config/oasis:/root/.config/oasis \
             -i \
             ghcr.io/oasisprotocol/rofl-dev:main \
-            oasis rofl deploy --account agentcred_deployer --yes
+            oasis rofl deploy --account agentcred_deployer ${{ inputs.replace-machine && '--replace-machine' || '' }} --yes
