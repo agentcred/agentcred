@@ -44,7 +44,7 @@ export const Footer = () => {
         </div>
       </div>
       <div className="w-full">
-        <ul className="menu menu-horizontal w-full">
+        <ul className="menu menu-horizontal w-full hidden">
           <div className="flex justify-center items-center gap-2 text-sm w-full">
             <div className="text-center">
               <a href="https://github.com/scaffold-eth/se-2" target="_blank" rel="noreferrer" className="link">
