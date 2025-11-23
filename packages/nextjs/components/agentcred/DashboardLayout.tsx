@@ -32,9 +32,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <span className="font-bold text-xl tracking-tight">AgentCred</span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-sm opacity-60 font-mono hidden md:block mr-4">COMMAND CENTER // LIVE</div>
-            <RainbowKitCustomConnectButton />
             {isLocalNetwork && <FaucetButton />}
+            <RainbowKitCustomConnectButton />
           </div>
         </header>
 
