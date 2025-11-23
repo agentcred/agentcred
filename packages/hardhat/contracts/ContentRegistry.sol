@@ -117,6 +117,8 @@ contract ContentRegistry is AccessControl {
         require(_score <= 100, "Score must be between 0 and 100");
 
         Content storage content = contents[_contentHash];
+        require(content.status == Status.Pending, "Content already audited");
+        
         content.status = _ok ? Status.AuditedOk : Status.AuditedFail;
         content.auditScore = _score;
 

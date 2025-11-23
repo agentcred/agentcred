@@ -148,7 +148,7 @@ describe("AgentStaking", function () {
         // Try to stake by auditor (different owner)
         await expect(
             agentStaking.connect(auditor).stake(agentId, amount)
-        ).to.be.revertedWith("Only the agent owner can stake");
+        ).to.be.revertedWith("Only agent owner can stake");
     });
 
     it("Should reject staking for non-existent agent when registry is set", async function () {
@@ -160,7 +160,7 @@ describe("AgentStaking", function () {
 
         await expect(
             agentStaking.connect(user).stake(999, ethers.parseEther("10"))
-        ).to.be.revertedWith("Agent not registered");
+        ).to.be.revertedWithCustomError(identityRegistry, "ERC721NonexistentToken");
     });
 
     it("Should allow staking for registered agent when registry is set", async function () {

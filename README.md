@@ -154,7 +154,20 @@ The backend/orchestrator exposes a minimal public API for integration:
 
 ---
 
-## 5. Repository Structure
+## 5. Security Audit
+
+AgentCred has undergone a comprehensive security audit to ensure the integrity of its smart contracts and trust mechanisms. The audit identified and resolved critical vulnerabilities in agent staking, content auditing, and slashing mechanisms.
+
+**Key Security Fixes Implemented:**
+- **NFT Ownership Enforcement**: Prevents unauthorized staking and agent hijacking
+- **One-Shot Audit Prevention**: Ensures content can only be audited once, preventing reputation manipulation
+- **Zero-Amount Slashing Protection**: Prevents misleading slash events with zero amounts
+
+For full details, see [SECURITY_AUDIT.md](SECURITY_AUDIT.md).
+
+---
+
+## 6. Repository Structure
 
 This project is built on top of **Scaffold‑ETH 2**.
 
@@ -184,7 +197,7 @@ This project is built on top of **Scaffold‑ETH 2**.
 
 ---
 
-## 6. Quickstart
+## 7. Quickstart
 
 To run the AgentCred stack locally:
 

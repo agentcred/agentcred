@@ -46,20 +46,24 @@ contract AgentStaking is AccessControl {
     function stake(uint256 _agentId, uint256 _amount) external {
         require(_amount > 0, "Amount must be greater than 0");
 
-        // Verify agent existence if registry is set
+        // Verify agent ownership if registry is set
         if (identityRegistry != address(0)) {
-            try IERC721(identityRegistry).ownerOf(_agentId) returns (address) {
-                // Agent exists
-            } catch {
-                revert("Agent not registered");
+            address nftOwner = IERC721(identityRegistry).ownerOf(_agentId);
+            require(nftOwner == msg.sender, "Only agent NFT owner can stake");
+            
+            // If it's the first stake for this agent, set the owner
+            if (stakes[_agentId] == 0) {
+                agentOwners[_agentId] = msg.sender;
+            } else {
+                require(agentOwners[_agentId] == msg.sender, "Only agent owner can stake");
             }
-        }
-        
-        // If it's the first stake for this agent, set the owner
-        if (stakes[_agentId] == 0) {
-            agentOwners[_agentId] = msg.sender;
         } else {
-            require(agentOwners[_agentId] == msg.sender, "Only the agent owner can stake");
+            // Fallback for when registry is not set
+            if (stakes[_agentId] == 0) {
+                agentOwners[_agentId] = msg.sender;
+            } else {
+                require(agentOwners[_agentId] == msg.sender, "Only agent owner can stake");
+            }
         }
 
         stakes[_agentId] += _amount;
@@ -100,6 +104,7 @@ contract AgentStaking is AccessControl {
      * @param _reason The reason for slashing.
      */
     function slash(uint256 _agentId, uint256 _amount, string memory _reason) external onlyRole(AUDITOR_ROLE) {
+        require(_amount > 0, "Slash amount must be greater than 0");
         require(stakes[_agentId] >= _amount, "Insufficient stake to slash");
 
         stakes[_agentId] -= _amount;
