@@ -1,3 +1,4 @@
+import { notificationService } from "./msgcore";
 import type { Plugin } from '@elizaos/core';
 import {
   type Action,
@@ -104,6 +105,8 @@ export class StarterService extends Service {
     if (this.pollingInterval) return;
 
     logger.info('Starting blockchain polling loop...');
+    notificationService.notify("🚀 ROFL Agent Online & Polling for Content...");
+
     this.pollingInterval = setInterval(async () => {
       if (this.isPolling) return;
       this.isPolling = true;
@@ -188,8 +191,10 @@ export class StarterService extends Service {
           args: [contentHash, ok, BigInt(score)],
         });
         logger.info(`Submitted audit result: ${hash}`);
+        await notificationService.notify(`✅ Verified content ${contentHash} (OK: ${ok}, Score: ${score}). Tx: ${hash}`);
       } catch (txError) {
         logger.error('Failed to submit audit transaction:', txError);
+        await notificationService.notify(`❌ Error verifying content ${contentHash}: ${txError}`);
       }
     }
   }
