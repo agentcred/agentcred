@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { Address as AddressComponent } from "@scaffold-ui/components";
-import { Address, formatEther } from "viem";
+import { Address } from "viem";
 import { useEnsAvatar, useEnsName } from "wagmi";
 import { AgentRankingTable } from "~~/components/agentcred/AgentRankingTable";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
@@ -20,7 +21,7 @@ export default function ProfilePage() {
       <div className="card w-96 bg-base-100 shadow-xl mb-10">
         <figure className="px-10 pt-10">
           {ensAvatar ? (
-            <img src={ensAvatar} alt="Avatar" className="rounded-xl h-24 w-24" />
+            <Image src={ensAvatar} alt="Avatar" width={96} height={96} className="rounded-xl" />
           ) : (
             <div className="h-24 w-24 rounded-full overflow-hidden relative">
               <BlockieAvatar address={address as Address} size={96} />

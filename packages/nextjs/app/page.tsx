@@ -20,7 +20,7 @@ export default function Home() {
 
   // Get events for the first agent
   const agentId = profile?.agents[0]?.agentId;
-  const { events: agentEvents, isLoading: eventsLoading, refetch: refetchEvents } = useAgentEvents(agentId);
+  const { events: agentEvents, refetch: refetchEvents } = useAgentEvents(agentId);
 
   const handleSubmitContent = async (content: string) => {
     setIsSubmitting(true);

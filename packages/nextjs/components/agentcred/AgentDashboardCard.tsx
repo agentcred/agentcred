@@ -1,9 +1,8 @@
 "use client";
 
-import { Address } from "viem";
 import { formatEther } from "viem";
 import { useAccount } from "wagmi";
-import { BoltIcon, ShieldCheckIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 
 interface AgentDashboardCardProps {
   agentId: number;
@@ -13,12 +12,7 @@ interface AgentDashboardCardProps {
   failedContents: number;
 }
 
-export const AgentDashboardCard = ({
-  agentId,
-  reputation,
-  stake,
-  totalContents,
-}: AgentDashboardCardProps) => {
+export const AgentDashboardCard = ({ agentId, reputation, stake }: AgentDashboardCardProps) => {
   const { address } = useAccount();
 
   // Calculate Trust Level

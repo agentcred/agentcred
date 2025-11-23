@@ -114,4 +114,4 @@ export function SlashingTimeline({ events }: SlashingTimelineProps) {
       })}
     </div>
   );
-};
+}

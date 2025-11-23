@@ -86,7 +86,7 @@ export const SubmitContentForm = ({ availableAgents, onSuccess }: SubmitContentF
           <div className="form-control">
             <label className="label">
               <span className="label-text font-semibold">Content</span>
-              <span className="label-text-alt text-xs">💡 Tip: Include "unsafe" to trigger a failure</span>
+              <span className="label-text-alt text-xs">💡 Tip: Include &quot;unsafe&quot; to trigger a failure</span>
             </label>
             <textarea
               className="textarea textarea-bordered h-32"
