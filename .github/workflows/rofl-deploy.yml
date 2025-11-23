@@ -67,7 +67,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rofl-bundle
-          path: packages/rofl-poc/*.orc
+          path: |
+            packages/rofl-poc/*.orc
+            packages/rofl-poc/rofl.yaml
           retention-days: 30
 
   deploy:
