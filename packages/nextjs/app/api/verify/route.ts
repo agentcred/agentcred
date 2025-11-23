@@ -70,25 +70,37 @@ export async function POST(req: NextRequest) {
     await publicClient.waitForTransactionReceipt({ hash: auditHash });
     console.log(`Audit completed: ok=${ok}, score=${score}`);
 
-    // 4. Update reputation scores (optional - can be enabled later)
-    // const trustScoreRegistryAddress = deployedContracts[sapphireTestnet.id].TrustScoreRegistry?.address;
-    // const trustScoreRegistryAbi = deployedContracts[sapphireTestnet.id].TrustScoreRegistry?.abi;
-    // if (trustScoreRegistryAddress && trustScoreRegistryAbi) {
-    //   const userDelta = ok ? 1n : -1n;
-    //   const agentDelta = ok ? 2n : -3n;
-    //   await walletClient.writeContract({
-    //     address: trustScoreRegistryAddress as `0x${string}`,
-    //     abi: trustScoreRegistryAbi,
-    //     functionName: "adjustUserReputation",
-    //     args: [author, userDelta],
-    //   });
-    //   await walletClient.writeContract({
-    //     address: trustScoreRegistryAddress as `0x${string}`,
-    //     abi: trustScoreRegistryAbi,
-    //     functionName: "adjustAgentReputation",
-    //     args: [BigInt(agentId), agentDelta],
-    //   });
-    // }
+    // 4. Update reputation scores
+    const trustScoreRegistryAddress = deployedContracts[sapphireTestnet.id].TrustScoreRegistry?.address;
+    const trustScoreRegistryAbi = deployedContracts[sapphireTestnet.id].TrustScoreRegistry?.abi;
+
+    if (trustScoreRegistryAddress && trustScoreRegistryAbi) {
+      // Calculate reputation deltas
+      const userDelta = ok ? 1n : -1n;
+      const agentDelta = ok ? 2n : -3n;
+
+      // Update user reputation
+      const userRepHash = await walletClient.writeContract({
+        address: trustScoreRegistryAddress as `0x${string}`,
+        abi: trustScoreRegistryAbi,
+        functionName: "adjustUserReputation",
+        args: [author, userDelta],
+      });
+
+      // Update agent reputation
+      const agentRepHash = await walletClient.writeContract({
+        address: trustScoreRegistryAddress as `0x${string}`,
+        abi: trustScoreRegistryAbi,
+        functionName: "adjustAgentReputation",
+        args: [BigInt(agentId), agentDelta],
+      });
+
+      await Promise.all([
+        publicClient.waitForTransactionReceipt({ hash: userRepHash }),
+        publicClient.waitForTransactionReceipt({ hash: agentRepHash }),
+      ]);
+      console.log(`Reputation updated: User ${userDelta}, Agent ${agentDelta}`);
+    }
 
     // 5. Get updated content status
     const contentData = (await publicClient.readContract({
