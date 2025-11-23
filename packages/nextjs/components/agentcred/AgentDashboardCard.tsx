@@ -18,7 +18,6 @@ export const AgentDashboardCard = ({
   reputation,
   stake,
   totalContents,
-  failedContents,
 }: AgentDashboardCardProps) => {
   const { address } = useAccount();
 

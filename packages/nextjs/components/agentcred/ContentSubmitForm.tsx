@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 
 interface ContentSubmitFormProps {
   agentId: number;
@@ -9,7 +8,7 @@ interface ContentSubmitFormProps {
   isLoading: boolean;
 }
 
-export const ContentSubmitForm = ({ agentId, onSubmit, isLoading }: ContentSubmitFormProps) => {
+export const ContentSubmitForm = ({ onSubmit, isLoading }: ContentSubmitFormProps) => {
   const [content, setContent] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,6 +45,7 @@ export const ContentSubmitForm = ({ agentId, onSubmit, isLoading }: ContentSubmi
           </button>
         </div>
       </form>
+      <p className="text-xs text-gray-500 mt-1">Paste your content URL or text to verify it&apos;s &quot;real&quot;</p>
       <div className="text-xs text-gray-500 font-mono pl-2">
         <span className="text-cyan-500">TIP:</span> Type "unsafe" to simulate a slashable offense.
       </div>

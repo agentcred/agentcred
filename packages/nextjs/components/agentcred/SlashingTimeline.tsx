@@ -8,7 +8,7 @@ interface SlashingTimelineProps {
   events: AgentEvent[];
 }
 
-export const SlashingTimeline = ({ agentId, events }: SlashingTimelineProps) => {
+export function SlashingTimeline({ events }: SlashingTimelineProps) {
   // Events are already sorted by timestamp desc in the hook
   const sortedEvents = events;
 

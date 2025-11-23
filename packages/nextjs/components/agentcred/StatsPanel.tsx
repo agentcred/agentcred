@@ -1,7 +1,6 @@
 "use client";
 
 import { formatEther } from "viem";
-import { BanknotesIcon, ChartBarIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 
 interface StatsPanelProps {
   totalAudits: number;
