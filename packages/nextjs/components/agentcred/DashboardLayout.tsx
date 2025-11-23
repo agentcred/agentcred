@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import { hardhat } from "viem/chains";
+import { BuidlGuidlLogo } from "~~/components/assets/BuidlGuidlLogo";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
@@ -26,8 +27,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {/* Top Bar */}
         <header className="h-16 border-b border-white/10 bg-black/20 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-50">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center font-bold text-lg">
-              A
+            <div className="w-8 h-8 flex items-center justify-center">
+              <BuidlGuidlLogo className="w-full h-full" />
             </div>
             <span className="font-bold text-xl tracking-tight">AgentCred</span>
           </div>
