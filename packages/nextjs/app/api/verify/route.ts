@@ -50,26 +50,74 @@ export async function POST(req: NextRequest) {
     await publicClient.waitForTransactionReceipt({ hash: publishHash });
     console.log(`Content published: ${contentHash}`);
 
-    // 2. Verification is now asynchronous via ROFL agent polling
-    // The frontend should poll the contract or listen for events to see the result
-    console.log("Content published. Waiting for ROFL agent to verify...");
+    // 2. Server-side validation logic (simple keyword check)
+    let ok = true;
+    let score = 100;
 
-    return NextResponse.json({
-      success: true,
-      contentHash,
-      status: "Pending",
-      score: 0,
-      ok: false,
-      publishTxHash: publishHash,
-      message: "Content published. Verification pending.",
+    if (content.toLowerCase().includes("unsafe")) {
+      ok = false;
+      score = 20;
+    }
+
+    // 3. Update audit result (this triggers automatic slashing)
+    const auditHash = await walletClient.writeContract({
+      address: contentRegistryAddress,
+      abi: contentRegistryAbi,
+      functionName: "updateAuditResult",
+      args: [contentHash, ok, BigInt(score)],
     });
 
+    await publicClient.waitForTransactionReceipt({ hash: auditHash });
+    console.log(`Audit completed: ok=${ok}, score=${score}`);
+
+    // 4. Update reputation scores
+    const trustScoreRegistryAddress = deployedContracts[sapphireTestnet.id].TrustScoreRegistry?.address;
+    const trustScoreRegistryAbi = deployedContracts[sapphireTestnet.id].TrustScoreRegistry?.abi;
+
+    if (trustScoreRegistryAddress && trustScoreRegistryAbi) {
+      // Calculate reputation deltas
+      const userDelta = ok ? 1n : -1n;
+      const agentDelta = ok ? 2n : -3n;
+
+      // Update user reputation
+      const userRepHash = await walletClient.writeContract({
+        address: trustScoreRegistryAddress as `0x${string}`,
+        abi: trustScoreRegistryAbi,
+        functionName: "adjustUserReputation",
+        args: [author, userDelta],
+      });
+
+      // Update agent reputation
+      const agentRepHash = await walletClient.writeContract({
+        address: trustScoreRegistryAddress as `0x${string}`,
+        abi: trustScoreRegistryAbi,
+        functionName: "adjustAgentReputation",
+        args: [BigInt(agentId), agentDelta],
+      });
+
+      await Promise.all([
+        publicClient.waitForTransactionReceipt({ hash: userRepHash }),
+        publicClient.waitForTransactionReceipt({ hash: agentRepHash }),
+      ]);
+      console.log(`Reputation updated: User ${userDelta}, Agent ${agentDelta}`);
+    }
+
+    // 5. Get updated content status
+    const contentData = (await publicClient.readContract({
+      address: contentRegistryAddress,
+      abi: contentRegistryAbi,
+      functionName: "contents",
+      args: [contentHash],
+    })) as any;
+
     return NextResponse.json({
       success: true,
       contentHash,
-      status: "Pending",
+      status: ["Pending", "Published", "AuditedOk", "AuditedFail"][Number(contentData.status)],
+      score,
+      ok,
       publishTxHash: publishHash,
-      message: "Content published. Verification pending.",
+      auditTxHash: auditHash,
     });
   } catch (error: any) {
     console.error("Error in /api/verify:", error);
