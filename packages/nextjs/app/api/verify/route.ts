@@ -52,70 +52,28 @@ export async function POST(req: NextRequest) {
         await publicClient.waitForTransactionReceipt({ hash: publishHash });
         console.log(`Content published: ${contentHash}`);
 
-        // 2. Call ROFL Agent for Verification
-        // Prioritize env var, then local (for testing), then remote
-        const ROFL_APP_URL = process.env.ROFL_APP_URL || "http://127.0.0.1:3001";
-        console.log(`Calling ROFL agent at ${ROFL_APP_URL}/verify...`);
-
-        let ok = false;
-        let score = 0;
-
-        try {
-            const roflResponse = await fetch(`${ROFL_APP_URL}/verify`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ content }),
-            });
-
-            if (!roflResponse.ok) {
-                throw new Error(`ROFL agent returned ${roflResponse.status}`);
-            }
-
-            const roflData = await roflResponse.json();
-            ok = roflData.ok;
-            score = roflData.score;
-            console.log("ROFL Verdict:", roflData);
-
-        } catch (error) {
-            console.error("Failed to connect to ROFL agent:", error);
-            // Fallback for demo/testing if ROFL is offline
-            console.log("Falling back to local check...");
-            if (!content.toLowerCase().includes("unsafe")) {
-                ok = true;
-                score = 80;
-            }
-        }
-
-        // 3. Update audit result (Auditor Wallet submits the verdict)
-        // In the future, the ROFL agent itself should sign this transaction via TEE
-        const auditHash = await walletClient.writeContract({
-            address: contentRegistryAddress,
-            abi: contentRegistryAbi,
-            functionName: "updateAuditResult",
-            args: [contentHash, ok, BigInt(score)],
-        });
-
-        await publicClient.waitForTransactionReceipt({ hash: auditHash });
-        console.log(`Audit completed: ok=${ok}, score=${score}`);
-
-        // 4. Get updated content status
-        const contentData = await publicClient.readContract({
-            address: contentRegistryAddress,
-            abi: contentRegistryAbi,
-            functionName: "contents",
-            args: [contentHash],
-        }) as any;
+        // 2. Verification is now asynchronous via ROFL agent polling
+        // The frontend should poll the contract or listen for events to see the result
+        console.log("Content published. Waiting for ROFL agent to verify...");
 
         return NextResponse.json({
             success: true,
             contentHash,
-            status: ["Pending", "Published", "AuditedOk", "AuditedFail"][Number(contentData.status)],
-            score,
-            ok,
+            status: "Pending",
+            score: 0,
+            ok: false,
             publishTxHash: publishHash,
-            auditTxHash: auditHash,
+            message: "Content published. Verification pending."
+        });
+
+
+
+        return NextResponse.json({
+            success: true,
+            contentHash,
+            status: "Pending",
+            publishTxHash: publishHash,
+            message: "Content published. Verification pending."
         });
 
     } catch (error: any) {

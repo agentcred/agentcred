@@ -15,51 +15,36 @@ import {
   logger,
 } from '@elizaos/core';
 import { z } from 'zod';
+import { createPublicClient, createWalletClient, http, defineChain, parseAbiItem, type Hex } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
 
-/**
- * Define the configuration schema for the plugin with the following properties:
- *
- * @param {string} EXAMPLE_PLUGIN_VARIABLE - The name of the plugin (min length of 1, optional)
- * @returns {object} - The configured schema object
- */
-const configSchema = z.object({
-  EXAMPLE_PLUGIN_VARIABLE: z
-    .string()
-    .min(1, 'Example plugin variable is not provided')
-    .optional()
-    .transform((val) => {
-      if (!val) {
-        console.warn('Warning: Example plugin variable is not provided');
-      }
-      return val;
-    }),
+// Define Sapphire Testnet
+const sapphireTestnet = defineChain({
+  id: 23295,
+  name: 'Oasis Sapphire Testnet',
+  network: 'sapphire-testnet',
+  nativeCurrency: { name: 'TEST', symbol: 'TEST', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://testnet.sapphire.oasis.io'] },
+    public: { http: ['https://testnet.sapphire.oasis.io'] },
+  },
+  blockExplorers: {
+    default: { name: 'Oasis Explorer', url: 'https://explorer.oasis.io/testnet/sapphire' },
+  },
 });
 
-/**
- * Example HelloWorld action
- * This demonstrates the simplest possible action structure
- */
-/**
- * Represents an action that responds with a simple hello world message.
- *
- * @typedef {Object} Action
- * @property {string} name - The name of the action
- * @property {string[]} similes - The related similes of the action
- * @property {string} description - Description of the action
- * @property {Function} validate - Validation function for the action
- * @property {Function} handler - The function that handles the action
- * @property {Object[]} examples - Array of examples for the action
- */
+const CONTENT_REGISTRY_ADDRESS = process.env.CONTENT_REGISTRY_ADDRESS || '0x45b20c0D519312eF20dD7EB318be2e457DA964CE';
+
+const configSchema = z.object({
+  AUDITOR_PRIVATE_KEY: z.string().optional(),
+  CONTENT_REGISTRY_ADDRESS: z.string().optional(),
+});
+
 const helloWorldAction: Action = {
   name: 'HELLO_WORLD',
   similes: ['GREET', 'SAY_HELLO'],
   description: 'Responds with a simple hello world message',
-
-  validate: async (_runtime: IAgentRuntime, _message: Memory, _state: State): Promise<boolean> => {
-    // Always valid
-    return true;
-  },
-
+  validate: async (_runtime: IAgentRuntime, _message: Memory, _state: State): Promise<boolean> => true,
   handler: async (
     _runtime: IAgentRuntime,
     message: Memory,
@@ -68,95 +53,28 @@ const helloWorldAction: Action = {
     callback: HandlerCallback,
     _responses: Memory[]
   ): Promise<ActionResult> => {
-    try {
-      logger.info('Handling HELLO_WORLD action');
-
-      // Simple response content
-      const responseContent: Content = {
-        text: 'hello world!',
-        actions: ['HELLO_WORLD'],
-        source: message.content.source,
-      };
-
-      // Call back with the hello world message
-      await callback(responseContent);
-
-      return {
-        text: 'Sent hello world greeting',
-        values: {
-          success: true,
-          greeted: true,
-        },
-        data: {
-          actionName: 'HELLO_WORLD',
-          messageId: message.id,
-          timestamp: Date.now(),
-        },
-        success: true,
-      };
-    } catch (error) {
-      logger.error({ error }, 'Error in HELLO_WORLD action:');
-
-      return {
-        text: 'Failed to send hello world greeting',
-        values: {
-          success: false,
-          error: 'GREETING_FAILED',
-        },
-        data: {
-          actionName: 'HELLO_WORLD',
-          error: error instanceof Error ? error.message : String(error),
-        },
-        success: false,
-        error: error instanceof Error ? error : new Error(String(error)),
-      };
-    }
+    const responseContent: Content = {
+      text: 'hello world!',
+      actions: ['HELLO_WORLD'],
+      source: message.content.source,
+    };
+    await callback(responseContent);
+    return { success: true };
   },
-
-  examples: [
-    [
-      {
-        name: '{{name1}}',
-        content: {
-          text: 'Can you say hello?',
-        },
-      },
-      {
-        name: '{{name2}}',
-        content: {
-          text: 'hello world!',
-          actions: ['HELLO_WORLD'],
-        },
-      },
-    ],
-  ],
+  examples: [[{ name: 'user', content: { text: 'hello' } }, { name: 'eliza', content: { text: 'hello world!' } }]],
 };
 
-/**
- * Example Hello World Provider
- * This demonstrates the simplest possible provider implementation
- */
 const helloWorldProvider: Provider = {
   name: 'HELLO_WORLD_PROVIDER',
   description: 'A simple example provider',
-
-  get: async (
-    _runtime: IAgentRuntime,
-    _message: Memory,
-    _state: State
-  ): Promise<ProviderResult> => {
-    return {
-      text: 'I am a provider',
-      values: {},
-      data: {},
-    };
-  },
+  get: async (_runtime: IAgentRuntime, _message: Memory, _state: State): Promise<ProviderResult> => ({ text: 'I am a provider' }),
 };
 
 export class StarterService extends Service {
   static serviceType = 'starter';
-  capabilityDescription =
-    'This is a starter service which is attached to the agent through the starter plugin.';
+  capabilityDescription = 'This is a starter service which is attached to the agent through the starter plugin.';
+  private pollingInterval: NodeJS.Timeout | null = null;
+  private isPolling = false;
 
   constructor(runtime: IAgentRuntime) {
     super(runtime);
@@ -165,72 +83,130 @@ export class StarterService extends Service {
   static async start(runtime: IAgentRuntime) {
     logger.info('*** Starting starter service ***');
     const service = new StarterService(runtime);
+    service.startPolling();
     return service;
   }
 
   static async stop(runtime: IAgentRuntime) {
     logger.info('*** Stopping starter service ***');
-    // get the service from the runtime
     const service = runtime.getService(StarterService.serviceType);
-    if (!service) {
-      throw new Error('Starter service not found');
-    }
-    service.stop();
+    if (service) service.stop();
   }
 
   async stop() {
-    logger.info('*** Stopping starter service instance ***');
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
+
+  private startPolling() {
+    if (this.pollingInterval) return;
+
+    logger.info('Starting blockchain polling loop...');
+    this.pollingInterval = setInterval(async () => {
+      if (this.isPolling) return;
+      this.isPolling = true;
+      try {
+        await this.pollBlockchain();
+      } catch (error) {
+        logger.error('Error in polling loop:', error);
+      } finally {
+        this.isPolling = false;
+      }
+    }, 10000); // Poll every 10 seconds
+  }
+
+  private async pollBlockchain() {
+    const privateKey = process.env.AUDITOR_PRIVATE_KEY;
+    if (!privateKey) {
+      logger.warn('AUDITOR_PRIVATE_KEY not set, skipping polling');
+      return;
+    }
+
+    const account = privateKeyToAccount(privateKey as Hex);
+    const publicClient = createPublicClient({ chain: sapphireTestnet, transport: http() });
+    const walletClient = createWalletClient({ account, chain: sapphireTestnet, transport: http() });
+
+    // 1. Get recent ContentPublished events
+    const currentBlock = await publicClient.getBlockNumber();
+    const fromBlock = currentBlock - 100n; // Look back 100 blocks
+
+    const logs = await publicClient.getLogs({
+      address: (process.env.CONTENT_REGISTRY_ADDRESS || CONTENT_REGISTRY_ADDRESS) as Hex,
+      event: parseAbiItem('event ContentPublished(string contentHash, address indexed author, uint256 indexed agentId, string uri)'),
+      fromBlock,
+      toBlock: currentBlock,
+    });
+
+    logger.info(`Found ${logs.length} ContentPublished events in last 100 blocks`);
+
+    for (const log of logs) {
+      const { contentHash, uri } = log.args;
+      if (!contentHash || !uri) continue;
+
+      // 2. Check if already audited
+      const contentData = await publicClient.readContract({
+        address: (process.env.CONTENT_REGISTRY_ADDRESS || CONTENT_REGISTRY_ADDRESS) as Hex,
+        abi: [parseAbiItem('function contents(string) view returns (uint8 status, string contentHash, address author, uint256 agentId, uint256 score, bool ok, uint256 timestamp)')],
+        functionName: 'contents',
+        args: [contentHash],
+      }) as any;
+
+      // Status 0 = Pending
+      if (contentData[0] !== 0) {
+        // Already audited or not pending
+        continue;
+      }
+
+      logger.info(`Found pending content: ${contentHash}`);
+
+      // 3. Decode content from URI (assuming data:text/plain;base64,...)
+      let contentText = '';
+      if (uri.startsWith('data:text/plain;base64,')) {
+        const base64 = uri.split(',')[1];
+        contentText = Buffer.from(base64, 'base64').toString('utf-8');
+      } else {
+        contentText = uri; // Fallback
+      }
+
+      logger.info(`Verifying content: "${contentText.substring(0, 50)}..."`);
+
+      // 4. Verify Content (Mock Logic for now, replace with LLM later)
+      const isUnsafe = contentText.toLowerCase().includes('unsafe');
+      const ok = !isUnsafe;
+      const score = isUnsafe ? 20 : 95;
+
+      logger.info(`Verdict: ok=${ok}, score=${score}`);
+
+      // 5. Submit Result
+      try {
+        const hash = await walletClient.writeContract({
+          address: (process.env.CONTENT_REGISTRY_ADDRESS || CONTENT_REGISTRY_ADDRESS) as Hex,
+          abi: [parseAbiItem('function updateAuditResult(string contentHash, bool ok, uint256 score)')],
+          functionName: 'updateAuditResult',
+          args: [contentHash, ok, BigInt(score)],
+        });
+        logger.info(`Submitted audit result: ${hash}`);
+      } catch (txError) {
+        logger.error('Failed to submit audit transaction:', txError);
+      }
+    }
   }
 }
 
 const plugin: Plugin = {
   name: 'starter',
   description: 'A starter plugin for Eliza',
-  // Set lowest priority so real models take precedence
   priority: -1000,
   config: {
-    EXAMPLE_PLUGIN_VARIABLE: process.env.EXAMPLE_PLUGIN_VARIABLE,
+    AUDITOR_PRIVATE_KEY: process.env.AUDITOR_PRIVATE_KEY,
+    CONTENT_REGISTRY_ADDRESS: process.env.CONTENT_REGISTRY_ADDRESS,
   },
   async init(config: Record<string, string>) {
     logger.info('*** Initializing starter plugin ***');
-    try {
-      const validatedConfig = await configSchema.parseAsync(config);
-
-      // Set all environment variables at once
-      for (const [key, value] of Object.entries(validatedConfig)) {
-        if (value) process.env[key] = value;
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const errorMessages =
-          error.issues?.map((e) => e.message)?.join(', ') || 'Unknown validation error';
-        throw new Error(`Invalid plugin configuration: ${errorMessages}`);
-      }
-      throw new Error(
-        `Invalid plugin configuration: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  },
-  models: {
-    [ModelType.TEXT_SMALL]: async (
-      _runtime,
-      { prompt, stopSequences = [] }: GenerateTextParams
-    ) => {
-      return 'Never gonna give you up, never gonna let you down, never gonna run around and desert you...';
-    },
-    [ModelType.TEXT_LARGE]: async (
-      _runtime,
-      {
-        prompt,
-        stopSequences = [],
-        maxTokens = 8192,
-        temperature = 0.7,
-        frequencyPenalty = 0.7,
-        presencePenalty = 0.7,
-      }: GenerateTextParams
-    ) => {
-      return 'Never gonna make you cry, never gonna say goodbye, never gonna tell a lie and hurt you...';
-    },
+    if (config.AUDITOR_PRIVATE_KEY) process.env.AUDITOR_PRIVATE_KEY = config.AUDITOR_PRIVATE_KEY;
+    if (config.CONTENT_REGISTRY_ADDRESS) process.env.CONTENT_REGISTRY_ADDRESS = config.CONTENT_REGISTRY_ADDRESS;
   },
   routes: [
     {
@@ -238,9 +214,7 @@ const plugin: Plugin = {
       path: '/helloworld',
       type: 'GET',
       handler: async (_req: any, res: any, _runtime: IAgentRuntime) => {
-        res.json({
-          message: 'Hello World!',
-        });
+        res.json({ message: 'Hello World!' });
       },
     },
     {
@@ -249,51 +223,21 @@ const plugin: Plugin = {
       type: 'POST',
       handler: async (req: any, res: any, _runtime: IAgentRuntime) => {
         const { content } = req.body;
-        logger.info(`Verifying content: ${content}`);
+        logger.info(`Manual verification request for: ${content}`);
 
-        // TODO: Use runtime to call LLM for actual verification
-        // For now, return a mock success response to prove connection
-
-        const isUnsafe = content?.toLowerCase().includes("unsafe");
+        // Use the same verification logic as the polling loop
+        const isUnsafe = content?.toLowerCase().includes('unsafe');
+        const ok = !isUnsafe;
+        const score = isUnsafe ? 20 : 95;
 
         res.json({
-          ok: !isUnsafe,
-          score: isUnsafe ? 20 : 95,
-          reason: isUnsafe ? "Flagged as unsafe content" : "Verified by ROFL Agent (PoC)",
+          ok,
+          score,
+          reason: isUnsafe ? 'Flagged as unsafe content' : 'Verified by ROFL Agent (PoC)',
         });
       },
     },
   ],
-  events: {
-    MESSAGE_RECEIVED: [
-      async (params) => {
-        logger.info('MESSAGE_RECEIVED event received');
-        // print the keys
-        logger.info({ keys: Object.keys(params) }, 'MESSAGE_RECEIVED param keys');
-      },
-    ],
-    VOICE_MESSAGE_RECEIVED: [
-      async (params) => {
-        logger.info('VOICE_MESSAGE_RECEIVED event received');
-        // print the keys
-        logger.info({ keys: Object.keys(params) }, 'VOICE_MESSAGE_RECEIVED param keys');
-      },
-    ],
-    WORLD_CONNECTED: [
-      async (params) => {
-        logger.info('WORLD_CONNECTED event received');
-        // print the keys
-        logger.info({ keys: Object.keys(params) }, 'WORLD_CONNECTED param keys');
-      },
-    ],
-    WORLD_JOINED: [
-      async (params) => {
-        logger.info('WORLD_JOINED event received');
-        // print the keys
-        logger.info({ keys: Object.keys(params) }, 'WORLD_JOINED param keys');
-      },
-    ],
-  },
   services: [StarterService],
   actions: [helloWorldAction],
   providers: [helloWorldProvider],

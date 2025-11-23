@@ -50,9 +50,16 @@ jobs:
       
       - name: Build ROFL bundle
         working-directory: packages/rofl-poc
+        env:
+          CONTENT_REGISTRY_ADDRESS: ${{ vars.CONTENT_REGISTRY_ADDRESS }}
+          AUDITOR_PRIVATE_KEY: ${{ secrets.AUDITOR_PRIVATE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           docker run --platform linux/amd64 \
             --volume $(pwd):/src \
+            --env CONTENT_REGISTRY_ADDRESS \
+            --env AUDITOR_PRIVATE_KEY \
+            --env OPENAI_API_KEY \
             ghcr.io/oasisprotocol/rofl-dev:main \
             oasis rofl build
       

@@ -14,8 +14,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-
-
 # Install bun globally with npm
 RUN npm install -g bun
 
@@ -26,7 +24,6 @@ ENV PATH="/root/.bun/bin:/home/node/.bun/bin:$PATH"
 RUN echo '#!/bin/bash\nexec /app/node_modules/.bin/elizaos "$@"' > /usr/local/bin/elizaos && \
     chmod +x /usr/local/bin/elizaos
 
-# Set working directory
 # Create app directory and set permissions
 RUN mkdir -p /app && chown -R node:node /app
 
@@ -36,11 +33,13 @@ WORKDIR /app
 # Switch to non-root user
 USER node
 
-# Copy package files (as node user)
+# Copy package files ONLY (for better layer caching)
 COPY --chown=node:node package.json bun.lock* ./
 
-# Install dependencies
-RUN bun install
+# Install dependencies with optimizations
+# --frozen-lockfile ensures reproducible builds
+# --no-cache reduces memory usage
+RUN bun install --frozen-lockfile
 
 # Copy the rest of the application (as node user)
 COPY --chown=node:node . .
@@ -58,7 +57,6 @@ USER root
 
 # Expose port (adjust if needed based on your application)
 EXPOSE 3000
-
 
 # Start the application with permission fix
 # Create the .eliza directory and ensure proper ownership before running as node
