@@ -1,17 +1,17 @@
 "use client";
 
-import { useAccount } from "wagmi";
-import { toast } from "react-hot-toast";
-import { DashboardLayout } from "~~/components/agentcred/DashboardLayout";
-import { useUserProfile } from "~~/hooks/agentcred/useUserProfile";
-import { RegisterAgentForm } from "~~/components/agentcred/RegisterAgentForm";
-import { AgentDashboardCard } from "~~/components/agentcred/AgentDashboardCard";
-import { SlashingTimeline } from "~~/components/agentcred/SlashingTimeline";
-import { ContentSubmitForm } from "~~/components/agentcred/ContentSubmitForm";
-import { StatsPanel } from "~~/components/agentcred/StatsPanel";
-import { StakingPanel } from "~~/components/agentcred/StakingPanel";
-import { useAgentEvents } from "~~/hooks/agentcred/useAgentEvents";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
+import { useAccount } from "wagmi";
+import { AgentDashboardCard } from "~~/components/agentcred/AgentDashboardCard";
+import { ContentSubmitForm } from "~~/components/agentcred/ContentSubmitForm";
+import { DashboardLayout } from "~~/components/agentcred/DashboardLayout";
+import { RegisterAgentForm } from "~~/components/agentcred/RegisterAgentForm";
+import { SlashingTimeline } from "~~/components/agentcred/SlashingTimeline";
+import { StakingPanel } from "~~/components/agentcred/StakingPanel";
+import { StatsPanel } from "~~/components/agentcred/StatsPanel";
+import { useAgentEvents } from "~~/hooks/agentcred/useAgentEvents";
+import { useUserProfile } from "~~/hooks/agentcred/useUserProfile";
 
 export default function Home() {
   const { address } = useAccount();
@@ -72,7 +72,9 @@ export default function Home() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-purple-500" />
 
             <div className="text-center mb-10">
-              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Initialize Agent</h1>
+              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                Initialize Agent
+              </h1>
               <p className="text-gray-400">Register your AI agent on-chain to begin building reputation.</p>
             </div>
 
@@ -101,7 +103,6 @@ export default function Home() {
   return (
     <DashboardLayout>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
-
         {/* Left Column: Identity (3 cols) */}
         <div className="lg:col-span-3 space-y-6">
           <AgentDashboardCard
@@ -131,23 +132,14 @@ export default function Home() {
           </div>
 
           <div className="shrink-0">
-            <ContentSubmitForm
-              agentId={agent.agentId}
-              onSubmit={handleSubmitContent}
-              isLoading={isSubmitting}
-            />
+            <ContentSubmitForm agentId={agent.agentId} onSubmit={handleSubmitContent} isLoading={isSubmitting} />
           </div>
         </div>
 
         {/* Right Column: Metrics (3 cols) */}
         <div className="lg:col-span-3 space-y-6">
-          <StatsPanel
-            totalAudits={totalAudits}
-            successRate={successRate}
-            totalSlashed={totalSlashed}
-          />
+          <StatsPanel totalAudits={totalAudits} successRate={successRate} totalSlashed={totalSlashed} />
         </div>
-
       </div>
     </DashboardLayout>
   );

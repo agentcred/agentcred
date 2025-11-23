@@ -41,7 +41,21 @@ deployments:
         value: pGJwa1ggpy+uSBQ1OUUEumw+oyrMT7RiWNU0gosXNKHgE7ZNDgZkbmFtZVgaLuKtklvFbYd7iLtP7noEPBTcDeyTSAsevtVlbm9uY2VP9/Erb2AmxnqzDuyL4LMgZXZhbHVlWQK1kuCmyb84lxAiJ/bUf9QbxffSoDZfDIiJm+xfLxnRAD2CjaRd6UrlbqO+CX0pzhYlNmr6lFu0n9nsD+709h6uhl1ZPr4pDHxTmaJYDwqN5ZiJYlwUlkTfyblSZJ2Yz96/ZqL1M65oQBYaoEaDUI+JdRm9nvb2lU4cwdeITSKi00wkro+0QBBpFhCThMsqd3PxxArwhRWThKqKkNO1fH5RJxpJCdJIHydUFBc8Wh5CB4JHglT1TzhXBtZBN+lgNdsuRsXXgIShIkFjVQcNZwID4TBSbAMq+TW7bqbsQCcBPG0x+5aEEErkdNZl/yUT3GIFrmyCfDuTfkYazqxhEA5Hp4VGpRyZd9hOg+lZAipNv9cSeNrIs5i34O3v+9TbfctMrxP8Cw2uUXJQQwCvNZPPoeSKxywkALXhVgkqKpslEB4MR8mKP/Zpn9AbiKwvqjhFOmYVrT2DYzYU98KTm2OFUwaS+iq7Ad2RxvOJKcABfgGRzBLnRKolBPebe11VHdSqgAzM1HjsuYF/uN05OztnIVIv/YWApSUaCKQIQHRaBXHzabXrLGeajTqobXsmI+VPdRxwL3neVQ8vW+wjEtCjLzJ9aTBVQHNFyMq2lWCPKogfUQrQxufKQCUOM17YK34lK/iz9GYJSVkKRNKGw0fCutOTU3FuinQImrYpZb80UPnEg8Yf4ZOmizT68hO4KaOqFrVnlv0OIorrmak/l0F1O1am3TjGcqGXND2j19ospBIkaPRAuju9vvunOQhhV+5RYmPmQKZ0JIx5JBkzXjJZvoaNklfGKHzJ6w1lyMU09MM35Cx0AUwOF9GKPppUgry+LO5LeoyclEK3NCdcTHGuiSo99hc5HfbUM4LBEAIcliG0WOtvmsa5AvwlancaX7Po/s0v1yuWmogTfzl8y3Wv3U+QEBSb
       - name: OPENAI_API_KEY
         value: pGJwa1gg/Bkc0WLCF8aQsOzfHCX2rKsyymwZIZFygRU7etCNdRxkbmFtZVge0ZEnZYjHfTvepJXLWJvTlaBzkkbfs3QzhMnNzUkFZW5vbmNlTxZwHLoBl/ENY9yk9vXW0mV2YWx1ZVi1gWxB1FaCRYTy4m/iAQA/S2fOrrJwRGuWquXWd9Knu7AnMr3jilJxC8tmBA8biuVQsXxUSepMJ/rK/9HlZr5RRnA3dby2U0zSEI9i+qTt6FfM5dMtI3sVuI/Joc4dQ4omGjmrwsvS4LFsIKOXX+K/UkiTF/nKzlXemUfnwHe0ET7FaHhFuyMkVA16Ddn8ntkxob2vteC5EI71FmMSpdkZZxpds2HttWMnrOeabfqMgk8hngF3kA==
+      - name: MSGCORE_API_KEY
+        value: pGJwa1gg53dN+YfoZW5oTNssp4jhm3RQI2o2MUnsEzc9/BoQ02NkbmFtZVgfo2up3QU4jErfkkUr0MNNCjvVojqN5yNBmAMdxJ+gUGVub25jZU9ClG0k30jd11OODN/CqvtldmFsdWVYQwx8YrX2fE/ANpiOfbR9pPlKT2OpxsQg4drR60okvBuc4GZ4Azcne8RkkQFr8T05FT5cQwrg9HUnbvC/GKE5jEpSHwA=
+      - name: MSGCORE_API_URL
+        value: pGJwa1ggZWKEMQvMxeQuQPAn/u4ZC6WxCkOKa5eBo34UvL+YMy5kbmFtZVgfAhjlpwq2JHgYWPlpec+aHPHt90xwx1fvHrfTGpzAMGVub25jZU8rdWNVZWgQnUqqAqI8cFdldmFsdWVYKuhdfa1PXV7VZlriCLn+BqlUXwwMxaqO0EtvfD9iuWFyJMm166Zr1G51Rg==
+      - name: MSGCORE_PROJECT_ID
+        value: pGJwa1ggdu9e/j9FitppfTO/LjV78Za1p2bCCo8jXPxFvDBHhzBkbmFtZVgioIEfo8Lhc7LW+Kol4bg6PzDzX7edBpQ9EaaF8SRxtV8MuGVub25jZU9itrQmL6enJjO/um4Q6GxldmFsdWVYGUwYeiGTk4sDf9SmcAKTRZFTWh/xiOEL5Qg=
+      - name: MSGCORE_PLATFORM_ID
+        value: pGJwa1ggvNttU1WI5hBGbhIo8mk9xRQepdd3fpj4Gb05EC+tnj1kbmFtZVgj41fPepsFEJfpOomoMt4uPHkiUK4yyA9RHB5df47j1KkehIZlbm9uY2VPGxUUgXDyprVDl+IRZX6kZXZhbHVlVF30SKb+hBD1bDG/3FBPFdk7zbNf
+      - name: MSGCORE_CHANNEL_ID
+        value: pGJwa1gg0GVFqKhhOJKHrXYqHd8M9Bh+4swis42hRfvnNUeSAzVkbmFtZVgiPHDiq3a2ze/YG86rs2IEXVN/Lmk02HAI6eoc2rPg9aiABWVub25jZU9E/PKi1Ia97OJJ5SoGRGtldmFsdWVYIyMpLituIPHUnW1iIdSRiNWPt1eW7L16GMmI/z958WMQtN/1
+      - name: CONTENT_REGISTRY_ADDRESS
+        value: pGJwa1ggJdhKNbF0wGiUP7AFIICXm1GnlTrr11EP+MdnesHcBwlkbmFtZVgojWs963YfrSW0Z3OiqzmoydkJjgYrLjl/esUn5L8w4Ina/FWE6IskimVub25jZU++eIZcqrue3VKXJcnj6FlldmFsdWVYOrtsKLmxO0s/ahMvWuMdBoHYHosahFyLgTm55JPW7sf0gQIJk2a1cGFJ5+LNdPbpCFRzPGPTXV29hdY=
+      - name: AUDITOR_PRIVATE_KEY
+        value: pGJwa1ggmqmnTh+sra27QkJJaUBpXBb41NFZO7+XotBnl81H9ApkbmFtZVgjJeiYBXKUjUtNz9ErItjZ5+ViK/RzoqPsZxDpirnrjqn8eF9lbm9uY2VPqPe2YkL+7YkW1S6OdysrZXZhbHVlWFKKJDj6QwlDLBS7jhRvFQG1CIXAslSHiPz+iloXbWKD+UlR/GUyoyk5/LDaQTRj5estTUz6iOYlqmv4IYROwERUArYGw9c53aCVUrrDc7ko8G9h
     machines:
       default:
         provider: oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz
-        id: "000000000000046f"
+        id: 000000000000046f
