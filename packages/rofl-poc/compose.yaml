@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: ankane/pgvector:v0.5.1
+    image: docker.io/ankane/pgvector:v0.5.1
     platform: linux/amd64
     environment:
       - POSTGRES_DB=elizaos
