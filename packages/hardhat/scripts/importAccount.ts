@@ -19,13 +19,19 @@ const getValidatedPassword = async () => {
 
 const getWalletFromPrivateKey = async () => {
   while (true) {
-    const privateKey = await password({ message: "Paste your private key:" });
+    const rawInput = await password({ message: "Paste your private key or mnemonic:" });
+    const input = rawInput.trim();
     try {
-      const wallet = new ethers.Wallet(privateKey);
-      return wallet;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      if (input.includes(" ")) {
+        // Assume mnemonic
+        return ethers.Wallet.fromPhrase(input);
+      } else {
+        // Assume private key
+        return new ethers.Wallet(input);
+      }
     } catch (e) {
-      console.log("❌ Invalid private key format. Please try again.");
+      console.log("❌ Invalid private key or mnemonic format. Please try again.");
+      console.error("Error details:", e);
     }
   }
 };

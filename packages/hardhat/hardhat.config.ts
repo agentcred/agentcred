@@ -125,6 +125,11 @@ const config: HardhatUserConfig = {
       url: "https://forno.celo-sepolia.celo-testnet.org/",
       accounts: [deployerPrivateKey],
     },
+    sapphireTestnet: {
+      url: "https://testnet.sapphire.oasis.io",
+      chainId: 23295,
+      accounts: [deployerPrivateKey],
+    },
   },
   // Configuration for harhdat-verify plugin
   etherscan: {
